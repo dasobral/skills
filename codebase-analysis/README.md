@@ -1,27 +1,28 @@
-# codebase-analysis skill
+# analyze-codebase skill
 
-A Claude Code skill that analyses a codebase for coding style, patterns,
-architecture, and standards, then persists the findings so that every
-subsequent agent session automatically enforces those conventions.
+Analyses a codebase across 16 dimensions and writes a prescriptive
+`CODING_REQUIREMENTS.md` that future agents load automatically as hard
+coding rules.
 
 ---
 
 ## What it does
 
-1. **Analyses** the full project (or a specified subset) across ten
-   dimensions: architecture, code style, naming conventions,
-   language/framework patterns, state management, error handling,
-   testing, documentation, security, and developer workflow.
+1. **Analyses** the full project (or a specified path) using the 16-dimension
+   checklist in `references/analysis-dimensions.md`.
 
-2. **Generates** a structured, actionable standards report using the
-   template in `templates/report.md`.
+2. **Writes** `CODING_REQUIREMENTS.md` in the most discoverable location:
+   `.claude/` → `docs/` → project root (first directory that exists).
 
-3. **Writes** the report to `.claude/codebase-instructions.md` in the
-   project root — a dedicated file managed exclusively by this skill.
+3. **Writes** `.claude/instructions.md` — an agent-agnostic pointer file
+   that tells any agent to read `CODING_REQUIREMENTS.md` before touching code.
 
-4. **Wires** the instructions file into `CLAUDE.md` via an `@`-import
-   so Claude Code loads the conventions automatically at every session
-   start, with no extra setup required.
+4. **Wires** `CLAUDE.md` with `@.claude/instructions.md` so Claude Code
+   loads everything automatically at session start.
+
+The output is **prescriptive**, not descriptive. Rules read as imperatives
+("Use `Result<T,E>` for all fallible operations") and are backed by real
+file references from the codebase.
 
 ---
 
@@ -29,90 +30,99 @@ subsequent agent session automatically enforces those conventions.
 
 ```
 codebase-analysis/
-├── SKILL.md               # Skill definition and agent instructions
-├── README.md              # This file
-└── templates/
-    └── report.md          # Report template filled in by the agent
+├── SKILL.md                           # Skill definition and agent instructions
+├── README.md                          # This file
+├── templates/
+│   └── report.md                      # Output template (16 sections)
+└── references/
+    └── analysis-dimensions.md         # Full 16-dimension analysis checklist
 ```
 
 ---
 
 ## Installation
 
-Copy (or symlink) the `codebase-analysis/` folder into your skills
-directory:
+Copy the `codebase-analysis/` folder into your skills directory:
 
 ```bash
-# Project-level (recommended — checked in with the project)
-cp -r codebase-analysis/ /path/to/your/project/.claude/skills/
+# Project-level (checked in with the project — recommended)
+cp -r codebase-analysis/ /path/to/project/.claude/skills/
 
-# Personal (available in every project on this machine)
+# Personal (available across all projects on this machine)
 cp -r codebase-analysis/ ~/.claude/skills/
 ```
 
-Claude Code discovers skills automatically — no restart needed.
+Claude Code discovers skills automatically on the next session start.
 
 ---
 
 ## Usage
 
-### Slash command (manual)
+### Slash command
 
 ```
-/codebase-analysis
+/analyze-codebase              # analyse the full project
+/analyze-codebase src/api/     # analyse a specific path
+/analyze-codebase src/auth.ts  # analyse a single file
 ```
 
-### Automatic trigger
+### Natural language triggers
 
-Claude will invoke the skill automatically when you phrase a request such
-as:
+Claude invokes the skill automatically when you write phrases like:
 
 - "Analyse the codebase and document the conventions."
-- "Capture the coding standards of this project."
-- "Extract the architecture patterns from `src/`."
+- "Capture the coding standards for this project."
+- "Extract the architecture and style rules from `src/`."
+- "Document what patterns I should follow when adding code here."
 
 ### Scoped analysis
 
-To restrict the analysis to a specific directory or file, include the
-path in your prompt or add the file/folder to the context window:
+Provide a path inline with the slash command, or attach / mention specific
+files and folders in your message — the skill restricts its analysis to
+that scope.
+
+---
+
+## Output files (written to the target project)
+
+| File | Purpose | Managed by |
+|------|---------|------------|
+| `.claude/CODING_REQUIREMENTS.md` *(or `docs/` or root)* | Full standards report | Skill — overwritten on each run |
+| `.claude/instructions.md` | Agent-agnostic pointer to requirements | Skill — `@path` line updated on each run |
+| `CLAUDE.md` | Gains one `@.claude/instructions.md` import | Skill — only the import line is touched |
+
+---
+
+## Auto-loading chain
 
 ```
-/codebase-analysis   (then mention or attach src/api/)
-Analyse only the frontend/ folder for code style.
+CLAUDE.md
+  └─ @.claude/instructions.md          ← pointer file
+       └─ @.claude/CODING_REQUIREMENTS.md   ← actual rules
 ```
 
----
-
-## Output
-
-After running, two files are created or updated in the project root:
-
-| File | Purpose |
-|------|---------|
-| `.claude/codebase-instructions.md` | Full standards report (skill-managed) |
-| `CLAUDE.md` | Gains one `@.claude/codebase-instructions.md` import line |
-
-`.claude/codebase-instructions.md` is **fully regenerated** each time the
-skill runs; do not edit it manually.
-
-`CLAUDE.md` is only touched to add the import line — all other content is
-preserved.
+Every Claude Code session reads this chain automatically. Other agents
+(Codex CLI, custom agents) can read `.claude/instructions.md` directly.
 
 ---
 
-## Refreshing the analysis
+## When to refresh
 
-Re-run `/codebase-analysis` whenever:
+Re-run `/analyze-codebase` after:
 
-- The project undergoes a significant architectural change.
-- A new framework or library is adopted.
-- Coding style rules are intentionally updated.
+- A significant architectural change.
+- Adopting a new framework, library, or language feature.
+- Intentionally changing a style or naming convention.
+
+The `CODING_REQUIREMENTS.md` is fully regenerated each time. The pointer
+file and `CLAUDE.md` import are updated minimally (only the `@path` line).
 
 ---
 
-## Report template
+## Customising the report structure
 
-The template at `templates/report.md` defines the structure of the
-generated instructions file. You can customise section headings or add
-project-specific sections directly in the template — changes take effect
-on the next run of the skill.
+Edit `templates/report.md` to add, remove, or rename sections. Changes
+take effect on the next run. The 16-dimension checklist in
+`references/analysis-dimensions.md` controls what the agent looks for
+during the analysis phase — edit it to focus on dimensions relevant to
+your stack.
