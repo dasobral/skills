@@ -2,289 +2,253 @@
 name: codebase-analysis
 description: >
   Analyzes the codebase (or a specified subset) for coding style, patterns,
-  architecture, and standards. Generates a structured report saved as
-  CLAUDE.md so future agent sessions automatically follow the established
-  conventions. TRIGGER when the user asks to "analyze the codebase",
-  "document coding standards", "capture code style", or similar.
+  architecture, and standards. Persists the findings to
+  `.claude/codebase-instructions.md` and wires it into `CLAUDE.md` via an
+  @-import so every subsequent agent session loads the conventions
+  automatically as hard coding requirements.
+  TRIGGER when the user asks to "analyze the codebase", "document coding
+  standards", "capture code style", "extract conventions", or similar.
   ALSO TRIGGER via /codebase-analysis slash command.
 allowed-tools: Read, Grep, Glob, Bash, Write, Edit
 ---
 
 # Codebase Analysis Skill
 
-You are performing a deep codebase analysis. Your goal is to produce a
-**coding standards and architecture report** that will be persisted as
-`CLAUDE.md` (or appended as a dedicated section when one already exists)
-so every future agent session automatically uses these conventions as
-hard requirements.
+Perform a structured analysis of the codebase and persist the findings so
+that **every future agent session inherits the established conventions
+automatically**, without the user needing to repeat them.
+
+Output is written to **`.claude/codebase-instructions.md`** — a dedicated,
+skill-managed file that keeps generated content separate from hand-written
+project notes. `CLAUDE.md` is updated with a single `@`-import line so
+Claude Code loads the instructions file at session start.
 
 ---
 
-## Step 1 — Determine Scope
+## Step 1 — Resolve Scope
 
-Check whether the user has indicated a specific file, folder, or subset:
+Determine what to analyse:
 
-- If an explicit path was provided, restrict the analysis to that subtree.
-- If nothing was specified, analyse the **entire project** starting from
-  the working directory.
+- If the user's message references a specific path, file, or folder
+  (including files added to context), restrict the analysis to that subtree.
+- Otherwise, analyse the **entire project** starting from the working
+  directory.
 
-Always print the resolved scope before proceeding:
-> "Analysing scope: `<path or 'full project'>`"
+Announce the resolved scope before continuing:
+> "Analysing scope: `<resolved path or 'full project'>`"
 
 ---
 
-## Step 2 — Discover the Project Layout
+## Step 2 — Load the Report Template
 
-Use `Glob` with `**/*` (depth-limited to ~3 levels first for an overview)
-and `Read` on top-level configuration files to understand:
+Read the template file located at:
+
+```
+<skill_base_path>/templates/report.md
+```
+
+You will fill this template with concrete findings in Step 4.
+Replace `{{ISO_DATE}}` with today's date and `{{ANALYSIS_SCOPE}}` with the
+resolved scope from Step 1.
+
+---
+
+## Step 3 — Discover the Project Layout
+
+Glob the project tree (limit to 3 levels deep for the first pass), then
+read the most relevant configuration and entry-point files:
 
 | Area | Files to examine |
 |------|-----------------|
-| Entry points | `main.*`, `index.*`, `app.*`, `server.*` |
-| Package / dependency manifest | `package.json`, `Cargo.toml`, `pyproject.toml`, `go.mod`, `pom.xml`, `*.gemspec`, `requirements*.txt`, `Pipfile` |
-| Build / task runners | `Makefile`, `Taskfile.*`, `justfile`, `*.sh` scripts in root |
-| Linter / formatter config | `.eslintrc*`, `.prettierrc*`, `ruff.toml`, `.flake8`, `pyproject.toml [tool.ruff]`, `rustfmt.toml`, `.golangci.*`, `checkstyle.xml` |
-| Type-checker config | `tsconfig*.json`, `mypy.ini`, `.pyright*` |
-| Test runner config | `jest.config.*`, `vitest.config.*`, `pytest.ini`, `conftest.py`, `*.test.ts` samples |
-| CI/CD | `.github/workflows/*.yml`, `.gitlab-ci.yml`, `Jenkinsfile` |
-| Project docs / instructions | `README.md`, `CONTRIBUTING.md`, `CLAUDE.md`, `AGENTS.md` |
+| Entry points | `main.*`, `index.*`, `app.*`, `server.*`, `cmd/*/main.*` |
+| Dependency manifests | `package.json`, `Cargo.toml`, `pyproject.toml`, `go.mod`, `pom.xml`, `build.gradle*`, `*.gemspec`, `requirements*.txt`, `Pipfile` |
+| Build / task runners | `Makefile`, `Taskfile.*`, `justfile`, root `*.sh` scripts |
+| Linter / formatter | `.eslintrc*`, `.prettierrc*`, `ruff.toml`, `.flake8`, `rustfmt.toml`, `.golangci.*`, `checkstyle.xml`, `biome.json` |
+| Type checker | `tsconfig*.json`, `mypy.ini`, `pyrightconfig.json` |
+| Test runner | `jest.config.*`, `vitest.config.*`, `pytest.ini`, `conftest.py` |
+| CI/CD | `.github/workflows/*.yml`, `.gitlab-ci.yml`, `Jenkinsfile`, `.circleci/config.yml` |
+| Existing instructions | `README.md`, `CONTRIBUTING.md`, `CLAUDE.md`, `AGENTS.md`, `.claude/codebase-instructions.md` |
+
+Read the existing `.claude/codebase-instructions.md` if it exists — note
+which sections are already accurate so you can preserve or update them.
 
 ---
 
-## Step 3 — Deep-Dive Analysis
+## Step 4 — Deep-Dive Analysis
 
-Work through each dimension below. For each, read representative samples
-(at least 3–5 files per category, preferring files from different modules
-or layers) and record concrete, specific findings — avoid vague
-observations.
+For each dimension below, read **3–5 representative source files** spread
+across different modules or layers. Prefer reading real code over inferring
+from filenames alone. Record **specific, actionable findings** — avoid
+vague observations like "the code is well-structured".
 
-### 3.1 Architectural Patterns
+Work through all ten dimensions even if some feel short; write
+`No established pattern — prefer [reasonable default]` when nothing is found.
+
+### 4.1 Architectural Patterns
 
 - Overall structure: monolith / monorepo / microservices / layered /
-  feature-based / domain-driven?
-- Primary directories and their responsibilities.
-- Module / package boundaries and dependency flow (what depends on what).
-- Dependency injection or service-locator patterns (if any).
-- Separation of concerns: where business logic, data access, and
-  presentation live.
-- Public API contracts: REST, GraphQL, RPC, event-driven?
+  feature-based / domain-driven / hexagonal?
+- Primary directories and their single responsibility.
+- Module / package boundaries and dependency flow (what may import what).
+- Dependency injection, service-locator, or factory patterns.
+- Where business logic, data access, and presentation live.
+- Public API contracts: REST, GraphQL, RPC, events, CLI?
 
-### 3.2 Code Style & Formatting
+### 4.2 Code Style & Formatting
 
-- Indentation: tabs vs. spaces, size (2 / 4 / 8?).
-- Quote style: single, double, backtick?
-- Line length limit.
-- Trailing commas, semicolons, braces style.
-- File encoding and line endings (LF vs CRLF).
-- Blank-line conventions (between functions, classes, sections).
+- Indentation: tabs vs. spaces, width.
+- Quote style (single / double / backtick).
+- Max line length.
+- Trailing commas, semicolons, brace style.
+- File encoding and line endings (LF vs. CRLF).
+- Blank-line conventions (between functions, classes, top-level blocks).
 - Import ordering and grouping rules.
 
-### 3.3 Naming Conventions
+### 4.3 Naming Conventions
 
-- Variables / constants: camelCase, snake_case, UPPER_SNAKE, PascalCase?
-- Functions / methods naming style and verb conventions.
-- Classes / types / interfaces / enums naming style.
-- File and directory naming style.
-- Test file naming (`*.test.ts`, `test_*.py`, `*_spec.rb`…).
-- Private / internal prefix or suffix conventions (`_`, `__`, `I`, `T`…).
+- Variables and constants.
+- Functions and methods (verb conventions, boolean prefixes like `is`, `has`).
+- Classes, structs, interfaces, enums, type aliases.
+- Files and directories.
+- Test files and test helpers.
+- Private / internal indicators (`_`, `__`, `I` prefix, etc.).
 
-### 3.4 Language & Framework Patterns
+### 4.4 Language & Framework Patterns
 
-- Language version and notable features in active use.
-- Framework(s) in use and version(s).
-- Idiomatic patterns used (hooks, decorators, middleware, generics,
-  iterators, async/await, goroutines, etc.).
-- Patterns explicitly **avoided** or superseded in this codebase.
-- Third-party library preferences (e.g. lodash vs. native, axios vs.
-  fetch, SQLAlchemy vs. raw SQL).
+- Language version and features actively used.
+- Framework(s) and version(s).
+- Idiomatic patterns in use (hooks, decorators, middleware, async/await, etc.).
+- Patterns explicitly avoided or superseded.
+- Preferred third-party libraries (e.g. `date-fns` not `moment`, `zod` not `joi`).
 
-### 3.5 State & Data Management
+### 4.5 State & Data Management
 
-- How application state is managed (Redux, Zustand, Context API,
-  MobX, Pinia, Signals…).
-- Data-fetching patterns (SWR, React Query, REST hooks, repository
-  pattern, ORMs…).
-- DTO / schema / validation layer conventions (Zod, Pydantic, class-validator…).
+- Application state management (Redux, Zustand, Pinia, Context, Signals, etc.).
+- Data-fetching (SWR, React Query, REST hooks, repository pattern, ORMs).
+- DTO / schema / validation layer (Zod, Pydantic, class-validator, etc.).
 
-### 3.6 Error Handling & Logging
+### 4.6 Error Handling & Logging
 
-- Error propagation style: exceptions, Result/Either types, error codes?
-- Custom error classes or error enums defined.
+- Error propagation: exceptions, Result/Either types, or error codes?
+- Custom error classes or error enums.
 - Logging library and log-level conventions.
-- How errors surface to users (HTTP status codes, error payloads).
+- How errors surface to users (HTTP status codes, payload shape).
 
-### 3.7 Testing Patterns
+### 4.7 Testing Patterns
 
 - Test pyramid balance (unit / integration / e2e).
 - Test file co-location vs. separate `tests/` directory.
 - Assertion library and matcher style.
 - Fixture / factory / mock patterns.
-- Coverage thresholds (if configured).
-- Required tests for PRs (noted in CI).
+- Coverage thresholds enforced by CI.
 
-### 3.8 Documentation & Comments
+### 4.8 Documentation & Comments
 
-- JSDoc / docstring convention (all public APIs? none? selected?).
-- Inline comment style (full sentences? fragment? `//` vs `#`?).
-- `TODO`, `FIXME`, `HACK` conventions.
-- API documentation tools (Swagger/OpenAPI, typedoc, sphinx…).
+- Docstring / JSDoc convention (all public APIs / complex logic only / none).
+- Inline comment style.
+- `TODO`, `FIXME`, `HACK` conventions (with ticket references?).
+- API documentation tools (OpenAPI, TypeDoc, Sphinx, etc.).
 
-### 3.9 Security & Performance Conventions
+### 4.9 Security & Performance Conventions
 
-- Input validation boundaries.
+- Input validation boundary.
 - Auth / authz pattern.
-- Secret management approach (env vars, vault references…).
-- Any noted performance patterns (memoization, pagination defaults,
-  caching layers).
+- Secret management (env vars, vault, etc.).
+- Noted performance patterns (memoisation, pagination defaults, caching).
 
-### 3.10 Developer Workflow
+### 4.10 Developer Workflow
 
-- How to install dependencies.
-- How to run, build, lint, format, and test locally.
-- Pre-commit hooks or CI gates that enforce quality.
-- Branch / commit message conventions (if visible in git history or docs).
+- Install, run, lint, format, type-check, test, and build commands.
+- Pre-commit hooks or CI gates.
+- Branch naming and commit message conventions.
 
 ---
 
-## Step 4 — Synthesize the Report
+## Step 5 — Write `.claude/codebase-instructions.md`
 
-Compose a structured Markdown report using the template below. Fill every
-section with **specific, actionable rules** — not summaries of what you
-observed. Write each rule as an imperative sentence a developer can
-follow directly. For sections where the codebase has no established
-pattern, write `No established pattern — prefer [reasonable default]`.
+Using the template loaded in Step 2, fill every section with the findings
+from Step 4. Rules:
+
+- Write each entry as an **imperative sentence** a developer can follow.
+- Be specific: "Use 2-space indentation" not "indentation is consistent".
+- When patterns conflict across files, document the dominant one and list
+  the deviation under **What NOT To Do**.
+- Do **not** touch any source file — only write the instructions file.
+
+Determine the target path:
+
+- If the analysis scope is the full project or a path inside the project
+  root: write to `{project_root}/.claude/codebase-instructions.md`.
+- If the scope is a specific subtree: write to
+  `{subtree_root}/.claude/codebase-instructions.md`.
+
+Create the `.claude/` directory if it does not exist.
+
+If `.claude/codebase-instructions.md` **already exists**, refresh it
+entirely — the template is the canonical structure. Do not preserve
+old free-form content; the new analysis supersedes it.
+
+---
+
+## Step 6 — Wire into `CLAUDE.md`
+
+Ensure Claude Code loads the instructions file automatically at every
+session start by adding an `@`-import to `CLAUDE.md`.
+
+The import line to add:
+
+```
+@.claude/codebase-instructions.md
+```
+
+### Case A — `CLAUDE.md` does not exist
+
+Create it with exactly this content:
 
 ```markdown
-# Codebase Standards & Architecture Guide
-
-> Auto-generated by the `codebase-analysis` skill on {ISO date}.
-> Update this file whenever a pattern is intentionally changed.
-
-## Project Overview
-<!-- 2–4 sentences: what the project does, its primary tech stack, and
-     the top-level directory map. -->
-
-## Architecture
-
-### Structure
-<!-- Bullet list of top-level directories and their purpose. -->
-
-### Dependency Flow
-<!-- Describe allowed and forbidden dependency directions. -->
-
-### Key Patterns
-<!-- e.g. "Use repository pattern for all DB access. Controllers must
-     not contain business logic." -->
-
-## Code Style
-
-| Rule | Value |
-|------|-------|
-| Indentation | … |
-| Quotes | … |
-| Line length | … |
-| Semicolons | … |
-| Trailing commas | … |
-| Line endings | … |
-
-## Naming Conventions
-
-| Entity | Convention | Example |
-|--------|-----------|---------|
-| Variables | … | … |
-| Constants | … | … |
-| Functions | … | … |
-| Classes / Types | … | … |
-| Files | … | … |
-| Directories | … | … |
-| Tests | … | … |
-
-## Language & Framework Rules
-
-- **Language version**: …
-- **Framework**: …
-- Preferred patterns (with brief rationale):
-  - …
-- Patterns to avoid:
-  - …
-
-## State & Data Management
-
-- …
-
-## Error Handling & Logging
-
-- …
-
-## Testing Requirements
-
-- …
-
-## Documentation & Comments
-
-- …
-
-## Security & Performance
-
-- …
-
-## Developer Workflow
-
-```bash
-# Install
-…
-# Run
-…
-# Lint / format
-…
-# Test
-…
+@.claude/codebase-instructions.md
 ```
 
-## What NOT To Do
+### Case B — `CLAUDE.md` exists and already contains the import
 
-<!-- Common anti-patterns seen in this codebase or explicitly
-     prohibited by the project. -->
+Do nothing. The file is already wired correctly.
 
----
-*Keep this file in sync with the codebase. Run `/codebase-analysis` again
-after significant architectural changes.*
+### Case C — `CLAUDE.md` exists but does not contain the import
+
+Prepend the import line at the very top of the file, followed by a blank
+line, leaving all other content unchanged:
+
+```
+@.claude/codebase-instructions.md
+
+<existing content>
 ```
 
 ---
 
-## Step 5 — Persist the Report
+## Step 7 — Confirm
 
-### Case A — No `CLAUDE.md` exists yet
+Print a summary message:
 
-Write the complete report to `CLAUDE.md` in the **project root** (or
-the root of the analysed subtree if a subset was requested).
+```
+✓ Analysis complete.
 
-### Case B — `CLAUDE.md` already exists
+Standards written to : .claude/codebase-instructions.md
+Auto-loaded via      : CLAUDE.md (@-import)
 
-1. Read the existing file.
-2. If a `# Codebase Standards & Architecture Guide` section already
-   exists, **replace only that section** (from its heading to the next
-   `---` or `#` at the same depth).
-3. If no such section exists, **append** the full report at the end,
-   preceded by a horizontal rule `---`.
-4. Preserve all other content in the file unchanged.
-
-After writing, confirm with the user:
-> "Analysis complete. Standards saved to `CLAUDE.md`.
-> Future Claude Code sessions will load these conventions automatically."
+Every future Claude Code session in this project will load these
+conventions automatically. Re-run /codebase-analysis after significant
+architectural changes.
+```
 
 ---
 
-## Important Rules for This Skill
+## Skill Rules
 
-- Be **specific and concrete** — avoid sentences like "the code is
-  well-structured". Write rules a developer can apply.
-- Prefer **reading real files** over inferring from filenames alone.
-  Spot-check at least one file per layer/module.
-- If the codebase is large, prioritise breadth (one sample per
-  category) over depth in any single file.
-- Do **not** modify any source files. Only write to `CLAUDE.md`.
-- When patterns conflict between files (e.g. mixed quote styles),
-  document the dominant pattern and flag the inconsistency explicitly
-  under "What NOT To Do".
+- Read real files — do not infer patterns from filenames alone.
+- Prioritise **breadth** (one sample per category) over depth in any
+  single file when the codebase is large.
+- Never modify source files. Only write `.claude/codebase-instructions.md`
+  and (minimally) `CLAUDE.md`.
+- Produce **rules**, not observations. Every sentence in the output file
+  must be actionable by a developer writing new code.
