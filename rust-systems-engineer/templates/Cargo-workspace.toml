@@ -1,0 +1,84 @@
+# Workspace Cargo.toml Template
+# ─────────────────────────────────────────────────────────────────────────────
+# Template for the rust-systems-engineer skill.
+# Replace all <<PLACEHOLDERS>> before use.
+#
+# Structure:
+#   Cargo.toml          ← this file (workspace root)
+#   crates/
+#     api/              ← Axum HTTP layer
+#     core/             ← domain logic (no I/O)
+#     client/           ← reqwest-based API clients
+#     config/           ← config structs, env parsing
+#     common/           ← shared types, error enums
+#   bins/
+#     <<daemon>>/       ← binary crate
+# ─────────────────────────────────────────────────────────────────────────────
+
+[workspace]
+resolver = "2"
+members  = [
+    "crates/api",
+    "crates/core",
+    "crates/client",
+    "crates/config",
+    "crates/common",
+    "bins/<<DAEMON_NAME>>",
+]
+
+# ── Shared dependencies ───────────────────────────────────────────────────────
+# Inherit in member crates with: tokio.workspace = true
+# RULE: no "*" version pins; use "x.y" (minor) or "=x.y.z" (exact)
+
+[workspace.dependencies]
+
+# ── Async runtime ─────────────────────────────────────────────────────────────
+tokio       = { version = "1.40", features = ["full"] }
+tokio-util  = { version = "0.7", features = ["rt"] }   # CancellationToken
+
+# ── HTTP server ───────────────────────────────────────────────────────────────
+axum        = { version = "0.7" }
+tower       = { version = "0.4", features = ["util"] }
+
+# ── HTTP client ───────────────────────────────────────────────────────────────
+reqwest     = { version = "0.12", default-features = false,
+                features = ["json", "rustls-tls"] }
+
+# ── Serialization ─────────────────────────────────────────────────────────────
+serde       = { version = "1.0", features = ["derive"] }
+serde_json  = { version = "1.0" }
+
+# ── Error handling ────────────────────────────────────────────────────────────
+anyhow      = { version = "1.0" }   # binaries / app layer
+thiserror   = { version = "1.0" }   # library crates
+
+# ── Observability ─────────────────────────────────────────────────────────────
+tracing             = { version = "0.1" }
+tracing-subscriber  = { version = "0.3", features = ["json", "env-filter"] }
+
+# ── Configuration ─────────────────────────────────────────────────────────────
+envy        = { version = "0.4" }   # typed env-var config via serde
+
+# ── IDs ───────────────────────────────────────────────────────────────────────
+uuid        = { version = "1.10", features = ["v4", "serde"] }
+
+# ── Testing ───────────────────────────────────────────────────────────────────
+wiremock    = { version = "0.6" }   # integration test HTTP mocking
+
+# ── Workspace metadata ────────────────────────────────────────────────────────
+[workspace.package]
+version     = "0.1.0"
+edition     = "2021"
+authors     = ["<<AUTHOR>>"]
+license     = "<<LICENSE>>"
+
+# ── Lint settings (applied workspace-wide) ────────────────────────────────────
+[workspace.lints.rust]
+unsafe_code             = "forbid"
+unused_imports          = "warn"
+unused_variables        = "warn"
+
+[workspace.lints.clippy]
+unwrap_used             = "warn"    # Enforces no .unwrap() in library code
+expect_used             = "warn"    # .expect() only in binary main() for fatal startup
+pedantic                = "warn"
