@@ -62,6 +62,30 @@ inline-annotated code snippets and a summary scorecard.
 | `examples/input/websocket_handler.cpp` | Mock concurrent QKD WebSocket handler with intentional defects |
 | `examples/output/websocket_handler_review.md` | Reference review output for the example file |
 
+### [agent-orchestrator](./agent-orchestrator/)
+
+Turns Claude into a top-level orchestrator that dynamically deploys specialized
+agents (defined as `.md` files in an `agents/` directory) to complete complex,
+multi-step tasks. Discovers available agents, decomposes the task into subtasks,
+builds a dependency-aware execution plan (task graph), runs agents sequentially
+or in parallel, routes named artifacts between them, handles failures with retry
+and escalation, and synthesizes a final deliverable.
+
+Agent-definition-agnostic — works with any set of agent definitions, not a
+fixed roster.
+
+**Slash command**: `/orchestrate "<task>" [agents-dir]`
+
+| File | Purpose |
+|------|---------|
+| `SKILL.md` | Skill definition and step-by-step orchestrator instructions |
+| `templates/orchestration-plan.md` | Reusable task-graph plan template (fill in and execute) |
+| `references/orchestration-patterns.md` | Pipeline topologies, sequencing rules, routing best practices |
+| `examples/agents/` | Three example agent definitions (reader, analyzer, report-writer) |
+| `examples/input/architecture.md` | Example input: payment service architecture document |
+| `examples/output/plan.md` | Example generated orchestration plan |
+| `examples/output/final_report.md` | Example final deliverable (executive summary) |
+
 ---
 
 ## Skill structure
