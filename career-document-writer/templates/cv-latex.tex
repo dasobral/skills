@@ -1,0 +1,182 @@
+% ============================================================
+% Daniel Sobral Blanco — Two-Column CV Template (LaTeX)
+% ============================================================
+% Layout: A4, single page, left 35% / right 65%
+% No colour accents; whitespace and font weight for hierarchy.
+%
+% AGENT INSTRUCTIONS
+% ──────────────────
+% Fill every <<PLACEHOLDER>> before delivery. If information
+% is missing, flag the gap (SKILL.md Step 7) rather than
+% inventing content. Do not add or change the layout without
+% explicit instruction.
+% ============================================================
+
+\documentclass[10pt,a4paper]{article}
+
+% ---- Packages -----------------------------------------------
+\usepackage[a4paper, top=1.2cm, bottom=1.2cm,
+            left=1.2cm, right=1.2cm]{geometry}
+\usepackage{multicol}
+\usepackage{parskip}
+\usepackage{titlesec}
+\usepackage{enumitem}
+\usepackage{hyperref}
+\usepackage{fontenc}
+\usepackage{inputenc}
+\usepackage{microtype}
+\usepackage{tabularx}
+\usepackage{array}
+
+% ---- Typography ---------------------------------------------
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{3pt}
+\titleformat{\section}{\normalfont\bfseries\large}{}{0em}{}[\titlerule]
+\titlespacing*{\section}{0pt}{8pt}{4pt}
+\titleformat{\subsection}{\normalfont\bfseries}{}{0em}{}
+\titlespacing*{\subsection}{0pt}{5pt}{2pt}
+\setlist[itemize]{leftmargin=1em, itemsep=0pt, topsep=2pt}
+\hypersetup{colorlinks=false, hidelinks}
+
+% ---- Column widths ------------------------------------------
+\newlength{\leftcolwidth}
+\setlength{\leftcolwidth}{0.33\textwidth}
+\newlength{\rightcolwidth}
+\setlength{\rightcolwidth}{0.63\textwidth}
+\newlength{\colsep}
+\setlength{\colsep}{0.04\textwidth}
+
+% ============================================================
+\begin{document}
+\pagestyle{empty}
+
+% ---- Header -------------------------------------------------
+\begin{center}
+  {\LARGE\bfseries Daniel Sobral Blanco}\\[3pt]
+  <<CITY, COUNTRY>> \textbar{}
+  \href{mailto:<<EMAIL>>}{<<EMAIL>>} \textbar{}
+  <<PHONE>>\\
+  \href{https://linkedin.com/in/<<LINKEDIN>>}{linkedin.com/in/<<LINKEDIN>>}
+  \quad
+  \href{https://github.com/<<GITHUB>>}{github.com/<<GITHUB>>}
+\end{center}
+
+\vspace{4pt}
+\rule{\textwidth}{0.4pt}
+\vspace{4pt}
+
+% ---- Two-column body ----------------------------------------
+\noindent
+\begin{minipage}[t]{\leftcolwidth}
+
+% ---- LEFT COLUMN --------------------------------------------
+
+\section{Education}
+
+\textbf{PhD in Physics}\\
+Cosmology\\
+University of Geneva\\
+<<YEAR_START>>--<<YEAR_END>>
+
+\vspace{4pt}
+
+\textbf{<<BSc/MSc DEGREE>>}\\
+<<FIELD>>\\
+<<INSTITUTION>>\\
+<<YEAR_START>>--<<YEAR_END>>
+
+% ---- Skills -------------------------------------------------
+\section{Technical Skills}
+
+\subsection{Languages}
+C++ (17) \textbullet{} Python\\
+CMake \textbullet{} Bash
+
+\subsection{Frameworks}
+websocketpp \textbullet{} Boost.Asio\\
+Google Test / GMock\\
+<<ADD OTHERS>>
+
+\subsection{Toolchain}
+Jenkins \textbullet{} SonarQube\\
+Bitbucket \textbullet{} Git
+
+\subsection{Domains}
+QKD ground segment software\\
+QRNG appliance software\\
+Bayesian inference (cosmology)\\
+Local LLM inference infrastructure
+
+% ---- Languages (spoken) -------------------------------------
+\section{Languages}
+
+Spanish — native\\
+English — professional\\
+<<OTHER — verify>>
+
+% ---- Contact / Links ----------------------------------------
+\section{Links}
+
+\href{mailto:<<EMAIL>>}{<<EMAIL>>}\\
+\href{https://github.com/<<GITHUB>>}{GitHub: <<GITHUB>>}\\
+\href{https://orcid.org/<<ORCID>>}{ORCID: <<ORCID>>}
+
+\end{minipage}%
+\hspace{\colsep}%
+\begin{minipage}[t]{\rightcolwidth}
+
+% ---- RIGHT COLUMN -------------------------------------------
+
+\section{Professional Experience}
+
+\textbf{Software Engineer} \hfill <<START DATE>>--present\\
+\textit{Quside, <<LOCATION>>}
+\begin{itemize}
+  \item QRNG appliance software: <<SPECIFIC DELIVERABLE>>
+  \item <<SPECIFIC TECHNICAL CONTRIBUTION — protocol, API, system>>
+  \item <<QUANTIFIED IMPACT if available>>
+\end{itemize}
+
+\vspace{4pt}
+
+\textbf{Software Engineer} \hfill <<START DATE>>--<<END DATE>>\\
+\textit{Indra / GARBO, <<LOCATION>>}
+\begin{itemize}
+  \item Production C++17 for QKD key management system (GARBO, QMO)
+  \item ETSI GS QKD 014 REST API integration; STOMP/WebSocket
+    inter-component messaging
+  \item <<SPECIFIC CONTRIBUTION — state machine, protocol, module>>
+  \item <<QUANTIFIED IMPACT — uptime, integration scope, team size>>
+\end{itemize}
+
+% ---- Selected Publications ----------------------------------
+% (Include for academic/hybrid audiences; omit or truncate for pure industry)
+
+\section{Selected Publications}
+
+\begin{itemize}
+  \item <<AUTHOR(S)>>, ``<<TITLE>>'', \textit{<<JOURNAL>>},
+    <<VOLUME>>(<<ISSUE>>), <<YEAR>>.
+    \href{https://doi.org/<<DOI>>}{doi:<<DOI>>}
+  \item <<REPEAT FOR EACH PUBLICATION — no fabrication>>
+\end{itemize}
+
+% ---- Key Projects -------------------------------------------
+\section{Key Projects}
+
+\textbf{<<PROJECT NAME>>}\\
+<<One-sentence description naming the tool, protocol, or system.>>\\
+\textit{Technologies}: <<LIST>>
+
+\vspace{4pt}
+
+\textbf{<<PROJECT NAME>>}\\
+<<One-sentence description.>>\\
+\textit{Technologies}: <<LIST>>
+
+\end{minipage}
+
+\end{document}
+% ============================================================
+% END OF TEMPLATE
+% ============================================================
