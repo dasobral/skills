@@ -71,8 +71,8 @@ accepted community standards into concrete rules.
 ## C++
 
 ### Standard
-- C++17 minimum. Use C++20 features (`std::span`, ranges, concepts,
-  `std::format`) where the toolchain supports them.
+- C++20 minimum. Use C++23 features (`std::expected`, `std::print`,
+  `std::flat_map`, deducing `this`) where the toolchain supports them.
 
 ### Formatting
 - 4-space indentation. Opening brace on the same line.
@@ -80,7 +80,7 @@ accepted community standards into concrete rules.
 - `#pragma once` for include guards.
 
 ### Naming
-- `PascalCase` for types and classes.
+- `PascalCase` for types, classes, and concepts.
 - `snake_case` for functions, methods, variables.
 - `kCamelCase` or `UPPER_SNAKE_CASE` for constants (pick one per project).
 - Private members: `trailing_underscore_` or `m_prefix` — be consistent.
@@ -91,12 +91,18 @@ accepted community standards into concrete rules.
 |-----------|-----------|
 | RAII everywhere | Deterministic cleanup; no manual resource management |
 | `std::unique_ptr` as default | Single ownership, zero overhead |
-| `const` by default | Prevents accidental mutation; improves optimisation |
+| `const` / `constexpr` / `consteval` by default | Shift computation to compile time; prevent accidental mutation |
 | `[[nodiscard]]` | Forces callers to check return values that matter |
 | `std::optional<T>` | Expresses nullable return without sentinel values |
 | `std::string_view` for non-owning string params | Avoids copies from literals and `std::string` |
-| Structured bindings | Cleaner decomposition of pairs and tuples |
-| Range-based `for` | Prefer over index loops unless the index is needed |
+| `std::span<T>` for non-owning array/buffer params | Type-safe, bounds-aware view over contiguous data |
+| Concepts (`requires`, `concept`) | Replaces SFINAE; constraint violations produce readable errors |
+| Ranges (`std::ranges::`, `std::views::`) | Composable, lazy pipelines over sequences |
+| `std::format` / `std::print` | Type-safe formatting; replaces `printf` and `stringstream` |
+| Coroutines (`co_await`, `co_yield`) for async I/O | Structured async without callback chains |
+| Structured bindings | Cleaner decomposition of pairs, tuples, and aggregates |
+| Three-way comparison (`<=>`) | Eliminates boilerplate comparison operators |
+| `std::jthread` over `std::thread` | Automatic join on destruction; supports stop tokens |
 
 ### Idiomatic constructs — AVOID
 
@@ -107,13 +113,16 @@ accepted community standards into concrete rules.
 | `using namespace std;` in headers | Pollutes every translation unit that includes the header |
 | C-style casts | `static_cast` / `reinterpret_cast` make intent explicit |
 | `std::endl` in hot paths | Flushes the buffer; use `'\n'` |
-| Exception-heavy hot paths | Use `std::expected` / result types for recoverable errors |
-| `#define` for constants | `constexpr` is typed and scoped |
+| SFINAE / `enable_if` | Concepts are clearer and produce better diagnostics |
+| `typedef` | `using` aliases are more readable and support templates |
+| Raw `std::thread` with manual `join`/`detach` | Use `std::jthread`; never detach without a clear lifecycle |
+| `#define` for constants or pseudo-functions | `constexpr` / `consteval` are typed, scoped, and debuggable |
+| `volatile` for threading | Use `std::atomic`; `volatile` does not provide memory ordering |
 
 ### Error handling
 - Exceptions for truly exceptional, unrecoverable conditions.
-- `std::expected<T, E>` (C++23) or a thin result type for recoverable
-  errors in hot paths.
+- `std::expected<T, E>` (C++23) for recoverable errors in APIs and hot
+  paths — prefer over `std::optional` when the error reason matters.
 - Never swallow exceptions with an empty `catch` block.
 - Destructors must not throw.
 

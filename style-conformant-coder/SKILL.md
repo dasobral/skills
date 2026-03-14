@@ -181,7 +181,7 @@ Style source priority:
   1. CODING_REQUIREMENTS.md content pasted into the conversation
   2. code-quality-reviewer output in the conversation
   3. User-provided style notes
-  4. Sensible language defaults (Black-compatible Python, C++17, idiomatic
+  4. Sensible language defaults (Black-compatible Python, C++20, idiomatic
      Go, etc.)
 
 Rules:
