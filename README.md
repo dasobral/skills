@@ -99,6 +99,28 @@ character/word counts against submission limits, and never invents credentials.
 | `references/profile.md` | Career profile and positioning reference |
 | `examples/cover-letter-esa-euroqci.md` | Example cover letter (ESA EuroQCI application) |
 
+### [cognitive-debt](./cognitive-debt/)
+
+Analyses a codebase (or a specified subset) for accumulated cognitive load —
+the mental effort required to read, understand, and modify code. Identifies
+seven debt categories: dead code, over-engineering, duplication, abstraction
+quality, control flow complexity, naming, and test debt. Applies per-language
+heuristics for Python, TypeScript/JS, Rust, C++, and Go. Scales analysis depth
+to codebase size (exhaustive for <500 LOC, structural + sampled for larger).
+Writes `COGNITIVE_DEBT.md` with a severity table (🔴/🟡/🟢), per-finding
+evidence, actionable recommendations, a prioritized action list, and a
+"what's working well" section. Complements `analyze-codebase` (structure and
+dependencies) and `code-quality-reviewer` (correctness and security).
+
+**Slash command**: `/cognitive-debt [path]`
+
+| File | Purpose |
+|------|---------|
+| `SKILL.md` | Skill definition and step-by-step analysis instructions |
+| `references/debt-categories.md` | Seven debt categories with per-language heuristics and calibrated thresholds |
+| `references/judgment-guidelines.md` | When not to flag — intentional design, language idioms, uncertainty handling |
+| `templates/COGNITIVE_DEBT.md` | Structured report template with severity table, findings, and action list |
+
 ### [code-quality-reviewer](./code-quality-reviewer/)
 
 Performs a language-agnostic code review across four pillars — Clarity,
