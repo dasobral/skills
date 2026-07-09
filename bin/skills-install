@@ -9,9 +9,12 @@ from pathlib import Path
 
 PLATFORMS = {
     "cursor": {
+        # Flat skills from dist/cursor (after export) or plugins/cursor skills
         "project": [".cursor/skills"],
         "user": [Path.home() / ".cursor" / "skills"],
         "source": "dist/cursor",
+        "fallback_source": "plugins/cursor",
+        "plugins_user": Path.home() / ".cursor" / "plugins" / "local",
     },
     "claude": {
         "project": [".claude/skills"],
@@ -37,26 +40,33 @@ def find_root() -> Path:
     raise SystemExit("Run from skills repo root (core/manifest.yaml not found)")
 
 
-def main() -> int:
-    parser = argparse.ArgumentParser(description="Install dist/ exports to platform paths")
-    parser.add_argument("platform", choices=list(PLATFORMS.keys()))
-    parser.add_argument("--user", action="store_true", help="Install to user home (default: project)")
-    parser.add_argument("--project", type=Path, default=Path.cwd(), help="Project directory")
-    args = parser.parse_args()
-
-    root = find_root()
-    cfg = PLATFORMS[args.platform]
-    src = root / cfg["source"]
+def _install_cursor_plugins(root: Path, target: Path) -> None:
+    """Copy full Cursor plugins into ~/.cursor/plugins/local/."""
+    src = root / "plugins" / "cursor"
     if not src.is_dir():
-        print(f"Missing {src} — run: ./bin/skills-maintain", file=sys.stderr)
-        return 1
+        print(f"Missing {src} — run: ./bin/skills-export sync cursor", file=sys.stderr)
+        raise SystemExit(1)
+    target.mkdir(parents=True, exist_ok=True)
+    for plugin_dir in sorted(src.iterdir()):
+        if not plugin_dir.is_dir() or plugin_dir.name.startswith("."):
+            continue
+        if not (plugin_dir / ".cursor-plugin").is_dir():
+            continue
+        dst = target / plugin_dir.name
+        if dst.exists() or dst.is_symlink():
+            if dst.is_symlink() or dst.is_file():
+                dst.unlink()
+            else:
+                shutil.rmtree(dst)
+        shutil.copytree(plugin_dir, dst)
+        print(f"installed cursor plugin -> {dst}")
 
-    targets = cfg["user"] if args.user else [args.project / p for p in cfg["project"]]
+
+def _install_flat_skills(src: Path, targets: list[Path], platform: str) -> None:
     for target in targets:
         target = target.expanduser()
         target.mkdir(parents=True, exist_ok=True)
-        if args.platform == "cursor":
-            # cursor: copy each plugin's skills
+        if platform == "cursor":
             for plugin_dir in src.iterdir():
                 skills = plugin_dir / "skills"
                 if skills.is_dir():
@@ -73,7 +83,45 @@ def main() -> int:
                     if dst.exists():
                         shutil.rmtree(dst)
                     shutil.copytree(skill, dst)
-        print(f"installed {args.platform} -> {target}")
+        print(f"installed {platform} skills -> {target}")
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(
+        description="Install dist/ (or plugins/cursor) exports to platform paths"
+    )
+    parser.add_argument("platform", choices=list(PLATFORMS.keys()))
+    parser.add_argument(
+        "--user",
+        action="store_true",
+        help="Install to user home (default: project)",
+    )
+    parser.add_argument(
+        "--plugins",
+        action="store_true",
+        help="Cursor only: install full plugins to ~/.cursor/plugins/local/",
+    )
+    parser.add_argument("--project", type=Path, default=Path.cwd(), help="Project directory")
+    args = parser.parse_args()
+
+    root = find_root()
+    cfg = PLATFORMS[args.platform]
+
+    if args.platform == "cursor" and args.plugins:
+        if not args.user:
+            print("--plugins implies --user (Cursor local plugins)", file=sys.stderr)
+        _install_cursor_plugins(root, cfg["plugins_user"])
+        return 0
+
+    src = root / cfg["source"]
+    if not src.is_dir() and cfg.get("fallback_source"):
+        src = root / cfg["fallback_source"]
+    if not src.is_dir():
+        print(f"Missing {src} — run: ./bin/skills-maintain", file=sys.stderr)
+        return 1
+
+    targets = cfg["user"] if args.user else [args.project / p for p in cfg["project"]]
+    _install_flat_skills(src, targets, args.platform)
     return 0
 
 
