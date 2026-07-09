@@ -1,0 +1,15 @@
+{
+  "name": "scientific-computing",
+  "displayName": "Scientific Computing",
+  "version": "2.0.0",
+  "description": "Design scientific computing platforms with compute-layer separation, emulator-first thinking, and right-sized infrastructure.",
+  "author": {
+    "name": "Daniel Sobral Blanco"
+  },
+  "license": "MIT",
+  "keywords": ["scientific", "hpc", "architecture", "emulators", "pytorch"],
+  "category": "developer-tools",
+  "tags": ["scientific", "platform", "architecture"],
+  "skills": "./skills/",
+  "agents": "./agents/"
+}
