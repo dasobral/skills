@@ -1,0 +1,19 @@
+version: 1
+
+# Map landing skills to plugins. Used when ingesting from landing/.
+# Edit before dropping skills, or add landing.yaml inside each skill folder.
+
+default_plugin: codecraft
+
+assignments:
+  # my-skill: codecraft
+
+new_plugins:
+  # my-toolkit:
+  #   display_name: My Toolkit
+  #   version: "1.0.0"
+  #   description: Custom skills bundle
+  #   category: developer-tools
+  #   keywords: [custom]
+  #   tags: [custom]
+  #   skills: []

@@ -1,0 +1,81 @@
+#!/usr/bin/env python3
+"""Install exported bundles into standard platform paths (project or user)."""
+from __future__ import annotations
+
+import argparse
+import shutil
+import sys
+from pathlib import Path
+
+PLATFORMS = {
+    "cursor": {
+        "project": [".cursor/skills"],
+        "user": [Path.home() / ".cursor" / "skills"],
+        "source": "dist/cursor",
+    },
+    "claude": {
+        "project": [".claude/skills"],
+        "user": [Path.home() / ".claude" / "skills"],
+        "source": "dist/claude/skills",
+    },
+    "codex": {
+        "project": [".agents/skills"],
+        "user": [
+            Path.home() / ".codex" / "skills",
+            Path.home() / ".agents" / "skills",
+        ],
+        "source": "dist/codex/skills",
+    },
+}
+
+
+def find_root() -> Path:
+    path = Path.cwd().resolve()
+    for candidate in [path, *path.parents]:
+        if (candidate / "core" / "manifest.yaml").is_file():
+            return candidate
+    raise SystemExit("Run from skills repo root (core/manifest.yaml not found)")
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description="Install dist/ exports to platform paths")
+    parser.add_argument("platform", choices=list(PLATFORMS.keys()))
+    parser.add_argument("--user", action="store_true", help="Install to user home (default: project)")
+    parser.add_argument("--project", type=Path, default=Path.cwd(), help="Project directory")
+    args = parser.parse_args()
+
+    root = find_root()
+    cfg = PLATFORMS[args.platform]
+    src = root / cfg["source"]
+    if not src.is_dir():
+        print(f"Missing {src} — run: ./bin/skills-maintain", file=sys.stderr)
+        return 1
+
+    targets = cfg["user"] if args.user else [args.project / p for p in cfg["project"]]
+    for target in targets:
+        target = target.expanduser()
+        target.mkdir(parents=True, exist_ok=True)
+        if args.platform == "cursor":
+            # cursor: copy each plugin's skills
+            for plugin_dir in src.iterdir():
+                skills = plugin_dir / "skills"
+                if skills.is_dir():
+                    for skill in skills.iterdir():
+                        if skill.is_dir():
+                            dst = target / skill.name
+                            if dst.exists():
+                                shutil.rmtree(dst)
+                            shutil.copytree(skill, dst)
+        else:
+            for skill in src.iterdir():
+                if skill.is_dir():
+                    dst = target / skill.name
+                    if dst.exists():
+                        shutil.rmtree(dst)
+                    shutil.copytree(skill, dst)
+        print(f"installed {args.platform} -> {target}")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

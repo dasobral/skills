@@ -1,0 +1,16 @@
+{
+  "name": "aos-stack",
+  "displayName": "AOS Stack",
+  "version": "2.0.0",
+  "description": "Agentic orchestration infrastructure: Rust services with LiteLLM-compatible APIs and local LLM inference configuration.",
+  "author": {
+    "name": "Daniel Sobral Blanco"
+  },
+  "license": "MIT",
+  "keywords": ["rust", "inference", "vllm", "litellm", "aos", "tokio"],
+  "category": "developer-tools",
+  "tags": ["rust", "inference", "local-llm", "aos"],
+  "skills": "./skills/",
+  "agents": "./agents/",
+  "hooks": "./hooks/hooks.json"
+}

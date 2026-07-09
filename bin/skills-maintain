@@ -1,0 +1,13 @@
+#!/usr/bin/env python3
+"""Autonomous maintenance: landing → core → Cursor + Claude + Codex."""
+import sys
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "tools" / "skills-export"))
+
+from skills_export.cli import main
+
+if __name__ == "__main__":
+    argv = ["maintain", *sys.argv[1:]]
+    raise SystemExit(main(argv))

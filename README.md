@@ -1,100 +1,93 @@
-# Cursor Skills Marketplace
+# Portable Skills Framework
 
-A multi-plugin marketplace for Cursor: consolidated agent skills, subagents,
-rules, and hooks — modernized from a collection of standalone Claude Code skills.
+One **portable core**, automatic **ingest from `landing/`**, and **export to Cursor, Claude Code, and Codex**. Stops the copy-paste migration pain.
 
-**13 legacy skills → 6 focused plugins**
+## The loop
 
-## Plugins
+```
+landing/ (any platform)  →  ingest + normalize  →  core/skills/
+                              ↓
+                    validate + translate
+                              ↓
+         ┌────────────────────┼────────────────────┐
+         ▼                    ▼                    ▼
+    Cursor plugins      Claude bundles        Codex bundles
+    (repo root)         dist/claude/          dist/codex/
+```
 
-| Plugin | Skills | What it does |
-|--------|--------|--------------|
-| [**codecraft**](./codecraft/) | 4 | Analyze conventions, write conformant code, review quality, audit cognitive debt |
-| [**cpp-qkd-toolkit**](./cpp-qkd-toolkit/) | 2 | Production C++ for QKD/defense — implement and multi-lens review |
-| [**agent-platform**](./agent-platform/) | 2 | Create agent definitions and orchestrate multi-agent pipelines |
-| [**aos-stack**](./aos-stack/) | 2 | Rust AOS services + local LLM inference (vLLM, LiteLLM) |
-| [**scientific-computing**](./scientific-computing/) | 1 | Scientific platform architecture and infrastructure sizing |
-| [**career-writer**](./career-writer/) | 1 | Career documents with audience-aware framing |
-
-## Installation
-
-### Marketplace (all plugins)
-
-Add this repository as a Cursor marketplace, then install individual plugins
-from the Customize page.
-
-### Single plugin (local)
+## Quick start
 
 ```bash
-# Clone and install one plugin locally
-git clone <repo-url> skills
-cp -r skills/codecraft ~/.cursor/plugins/local/codecraft
+# Drop a skill in landing/skills/my-skill/ (SKILL.md + references/)
+# Edit landing/registry.yaml → assign my-skill: codecraft
+
+./bin/skills-maintain              # ingest → validate → export all platforms
+./bin/skills-install claude        # install flat skills to .claude/skills/
+./bin/skills-install codex --user  # install to ~/.codex/skills/
 ```
 
-Plugins are immediately available in Cursor after install.
+## Landing zone
 
-## Consolidation Map
+| Path | Drop here |
+|------|-----------|
+| `landing/skills/` | Portable Agent Skills (any origin) |
+| `landing/incoming/claude/` | Claude-native skill folders |
+| `landing/incoming/codex/` | Codex-native skill folders |
+| `landing/incoming/cursor/` | Full Cursor plugin folders |
 
-Legacy standalone skills were merged to eliminate redundancy:
+After successful ingest, items move to `landing/processed/<timestamp>/`.
 
-| Legacy skill(s) | New plugin | New skill |
-|-----------------|------------|-----------|
-| `codebase-analysis` | codecraft | `analyze-codebase` |
-| `style-conformant-coder` | codecraft | `write-conformant-code` |
-| `code-quality-reviewer` + `cognitive-debt` | codecraft | `review-quality` + `audit-cognitive-debt` (shared heuristics) |
-| `cpp-production-engineer` + `cpp-realtime-reviewer` + `qkd-security-engineer` | cpp-qkd-toolkit | `cpp-engineer` + `cpp-review` (lens modes) |
-| `agent-creator` + `agent-orchestrator` | agent-platform | `create-agent` + `orchestrate` |
-| `ml-inference-optimizer` + `rust-systems-engineer` | aos-stack | `local-inference` + `rust-systems` |
-| `scientific-platform-architect` | scientific-computing | `scientific-platform-architect` |
-| `career-document-writer` | career-writer | `career-documents` |
+See [landing/README.md](./landing/README.md).
 
-## Recommended Workflows
+## Commands
 
-### Code quality pipeline
+| Command | What it does |
+|---------|----------------|
+| `./bin/skills-maintain` | Full autonomous pipeline |
+| `./bin/skills-export ingest` | Landing → core only |
+| `./bin/skills-export translate` | Same as maintain |
+| `./bin/skills-export sync cursor` | Regenerate Cursor plugins at repo root |
+| `./bin/skills-export export all` | Write `dist/claude` + `dist/codex` |
+| `./bin/skills-export validate` | Check core vs manifest |
+| `./bin/skills-install <platform>` | Copy `dist/` into standard install paths |
 
-```
-analyze-codebase → write-conformant-code → review-quality → audit-cognitive-debt
-```
-
-### C++ QKD development
-
-```
-cpp-engineer (implement) → cpp-review --full (audit)
-```
-
-### Multi-agent task
+## Repo layout
 
 ```
-create-agent (define) → orchestrate (execute with Task tool parallelism)
+core/skills/              ← source of truth (edit or ingest into here)
+core/manifest.yaml        ← plugin ↔ skill map
+landing/                  ← drop zone for new skills
+adapters/cursor/          ← Cursor-only agents, hooks, rules
+codecraft/ …              ← generated Cursor plugins
+tools/skills-export/      ← framework CLI
+dist/                     ← generated Claude/Codex output
 ```
 
-### AOS local stack
+## Authoring rules
 
-```
-local-inference (pick model) → rust-systems (wire API) → orchestrate (run agents)
-```
+1. **New skills** → `landing/skills/` (or `incoming/<platform>/`)
+2. **Assign plugin** → `landing/registry.yaml` or skill-local `landing.yaml`
+3. Run `./bin/skills-maintain`
+4. **Direct edits** → `core/skills/` then `sync cursor` + `export all`
 
-## Plugin Structure
+## Periodic / autonomous
 
-Each plugin follows the Cursor plugin format:
-
-```
-<plugin>/
-├── .cursor-plugin/plugin.json   # Manifest
-├── skills/<name>/SKILL.md       # Agent skills
-├── agents/*.md                  # Subagent definitions
-├── rules/*.mdc                  # Cursor rules (optional)
-├── hooks/hooks.json             # Lifecycle hooks (optional)
-└── README.md
+```bash
+# cron: every 6 hours
+0 */6 * * * cd /path/to/skills && ./bin/skills-maintain >> landing/maintain.log 2>&1
 ```
 
-## Modernization (v2.0)
+Report written to `landing/last-maintain.json` after each run.
 
-- **Cursor-native**: `.cursor/` paths, `AGENTS.md` wiring, Task tool subagents
-- **Hardware-adaptive**: local inference detects GPU VRAM instead of hardcoding RTX 3080
-- **Model-current**: Qwen3, Llama 3.x, cloud routing for multi-step tool loops
-- **Deduplicated**: shared review heuristics, unified C++ review lenses
-- **Generalized**: career writer uses fill-in profile template
+## Stack coverage
+
+| Platform | Export | Install path |
+|----------|--------|--------------|
+| **Cursor** | Plugins with agents/hooks/rules | `~/.cursor/plugins/local/` or marketplace |
+| **Claude Code** | `.claude/skills/` bundles | `.claude/skills/` |
+| **Codex** | `.agents/skills/` bundles | `.agents/skills/` or `~/.codex/skills/` |
+
+All skills follow the [Agent Skills open standard](https://agentskills.io).
 
 ## License
 

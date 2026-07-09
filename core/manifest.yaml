@@ -1,0 +1,155 @@
+version: 1
+license: MIT
+author:
+  name: Daniel Sobral Blanco
+marketplace:
+  name: dasobral-skills
+  description: 'Portable agent skills with export targets for Cursor, Claude Code,
+    and Codex.
+
+    '
+plugins:
+  codecraft:
+    display_name: Codecraft
+    version: 2.1.0
+    description: 'End-to-end code quality: analyze conventions, write conformant code,
+      review quality, and audit cognitive debt.
+
+      '
+    category: developer-tools
+    keywords:
+    - code-quality
+    - conventions
+    - review
+    - cognitive-debt
+    - refactoring
+    tags:
+    - analysis
+    - style
+    - review
+    - debt
+    skills:
+    - analyze-codebase
+    - write-conformant-code
+    - review-quality
+    - audit-cognitive-debt
+    cursor:
+      agents: true
+      rules: true
+      hooks: true
+  cpp-qkd-toolkit:
+    display_name: C++ QKD Toolkit
+    version: 2.1.0
+    description: 'Production C++ for QKD ground-segment systems: implement, build,
+      and multi-lens review.
+
+      '
+    category: developer-tools
+    keywords:
+    - cpp
+    - qkd
+    - security
+    - realtime
+    - defense
+    - cmake
+    tags:
+    - cpp
+    - qkd
+    - review
+    - production
+    skills:
+    - cpp-engineer
+    - cpp-review
+    cursor:
+      agents: true
+      rules: true
+      hooks: true
+  agent-platform:
+    display_name: Agent Platform
+    version: 2.1.0
+    description: 'Create agent definitions and orchestrate multi-agent pipelines.
+
+      '
+    category: developer-tools
+    keywords:
+    - agents
+    - orchestration
+    - multi-agent
+    - task-graph
+    tags:
+    - agents
+    - orchestration
+    - workflow
+    skills:
+    - create-agent
+    - orchestrate
+    cursor:
+      agents: true
+      hooks: true
+  aos-stack:
+    display_name: AOS Stack
+    version: 2.1.0
+    description: 'Rust AOS services with LiteLLM-compatible APIs and local LLM inference.
+
+      '
+    category: developer-tools
+    keywords:
+    - rust
+    - inference
+    - vllm
+    - litellm
+    - aos
+    - tokio
+    tags:
+    - rust
+    - inference
+    - local-llm
+    - aos
+    skills:
+    - local-inference
+    - rust-systems
+    cursor:
+      agents: true
+      hooks: true
+  scientific-computing:
+    display_name: Scientific Computing
+    version: 2.1.0
+    description: 'Scientific computing platform design with right-sized infrastructure.
+
+      '
+    category: developer-tools
+    keywords:
+    - scientific
+    - hpc
+    - architecture
+    - emulators
+    - pytorch
+    tags:
+    - scientific
+    - platform
+    - architecture
+    skills:
+    - scientific-platform-architect
+    cursor:
+      agents: true
+  career-writer:
+    display_name: Career Writer
+    version: 2.1.0
+    description: 'Professional career documents with audience-aware framing.
+
+      '
+    category: productivity
+    keywords:
+    - career
+    - cv
+    - cover-letter
+    - resume
+    - applications
+    tags:
+    - career
+    - writing
+    - applications
+    skills:
+    - career-documents
+    cursor:
+      agents: true
