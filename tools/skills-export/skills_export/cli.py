@@ -36,7 +36,7 @@ def main(argv: list[str] | None = None) -> int:
 
     p_sync = sub.add_parser(
         "sync",
-        help="Regenerate root-level Cursor plugins from core + adapters",
+        help="Regenerate plugins/cursor/ from core + adapters",
     )
     p_sync.add_argument(
         "target",
@@ -96,7 +96,7 @@ def main(argv: list[str] | None = None) -> int:
 
     p_maintain = sub.add_parser(
         "maintain",
-        help="Ingest landing → validate → sync Cursor → export Claude/Codex",
+        help="Ingest landing → validate → sync plugins/cursor → export Claude/Codex",
     )
     p_maintain.add_argument("--dry-run", action="store_true")
     p_maintain.add_argument("--skip-ingest", action="store_true")
@@ -146,10 +146,13 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.command == "sync":
         if args.target == "cursor":
-            paths = export_cursor(root, root, plugins=args.plugins, sync_root=True)
+            from .manifest import cursor_plugins_dir
+
+            out = cursor_plugins_dir(root)
+            paths = export_cursor(root, out, plugins=args.plugins, sync_root=True)
             for p in paths:
                 print(f"synced {p.relative_to(root)}")
-            print(f"Synced {len(paths)} Cursor plugin(s) to repo root")
+            print(f"Synced {len(paths)} Cursor plugin(s) to plugins/cursor/")
         return 0
 
     if args.command == "export":

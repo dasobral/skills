@@ -9,6 +9,7 @@ from ..manifest import (
     copy_skill,
     copy_tree,
     cursor_adapter_dir,
+    cursor_plugins_dir,
     load_manifest,
     plugin_skill_names,
     repo_root,
@@ -83,37 +84,82 @@ def export_cursor_plugin(
     return plugin_out
 
 
-def export_cursor_marketplace(root: Path, output_dir: Path) -> Path:
+def _marketplace_plugin_source(plugin_name: str, *, sync_plugins: bool) -> str:
+    if sync_plugins:
+        return f"plugins/cursor/{plugin_name}"
+    return plugin_name
+
+
+def export_cursor_marketplace(
+    root: Path,
+    output_dir: Path,
+    *,
+    sync_plugins: bool = False,
+) -> Path:
+    """Write marketplace.json.
+
+    When syncing into the repo, always update the root marketplace so Cursor
+    discovers plugins under plugins/cursor/. Dist exports keep a local copy.
+    """
     manifest = load_manifest(root)
     marketplace_path = root / ".cursor-plugin" / "marketplace.json"
-    dest = output_dir / ".cursor-plugin" / "marketplace.json"
-    if marketplace_path.is_file():
-        if marketplace_path.resolve() != dest.resolve():
-            dest.parent.mkdir(parents=True, exist_ok=True)
-            shutil.copy2(marketplace_path, dest)
+
+    plugins = []
+    for name, meta in manifest["plugins"].items():
+        plugins.append(
+            {
+                "name": name,
+                "source": _marketplace_plugin_source(name, sync_plugins=sync_plugins),
+                "description": meta["description"].strip(),
+                "category": meta.get("category"),
+                "tags": meta.get("tags", []),
+            }
+        )
+
+    if marketplace_path.is_file() and sync_plugins:
+        data = json.loads(marketplace_path.read_text(encoding="utf-8"))
+        # Preserve owner/metadata; refresh plugin list + sources from manifest
+        by_name = {p["name"]: p for p in data.get("plugins", [])}
+        refreshed = []
+        for entry in plugins:
+            prev = by_name.get(entry["name"], {})
+            merged = {**prev, **entry}
+            # Keep curated marketplace description when present
+            if prev.get("description"):
+                merged["description"] = prev["description"]
+            if prev.get("tags"):
+                merged["tags"] = prev["tags"]
+            if prev.get("category"):
+                merged["category"] = prev["category"]
+            refreshed.append(merged)
+        # Keep stable order: existing first, then any new plugins
+        known = {p["name"] for p in refreshed}
+        for prev in data.get("plugins", []):
+            if prev["name"] not in known:
+                refreshed.append(prev)
+        data["plugins"] = refreshed
+    elif marketplace_path.is_file() and not sync_plugins:
+        data = json.loads(marketplace_path.read_text(encoding="utf-8"))
+        # Dist copy: rewrite sources to bare plugin names (relative to dist/cursor)
+        for entry in data.get("plugins", []):
+            entry["source"] = entry["name"]
     else:
-        plugins = []
-        for name, meta in manifest["plugins"].items():
-            plugins.append(
-                {
-                    "name": name,
-                    "source": name,
-                    "description": meta["description"].strip(),
-                    "category": meta.get("category"),
-                    "tags": meta.get("tags", []),
-                }
-            )
         data = {
             "name": manifest.get("marketplace", {}).get("name", "skills"),
             "metadata": {
-                "description": manifest.get("marketplace", {}).get(
-                    "description", "Portable skills marketplace"
-                ).strip(),
+                "description": manifest.get("marketplace", {})
+                .get("description", "Portable skills marketplace")
+                .strip(),
             },
             "plugins": plugins,
         }
-        _write_json(output_dir / ".cursor-plugin" / "marketplace.json", data)
-    return output_dir
+
+    if sync_plugins:
+        dest = marketplace_path
+    else:
+        dest = output_dir / ".cursor-plugin" / "marketplace.json"
+    _write_json(dest, data)
+    return dest.parent.parent if sync_plugins else output_dir
 
 
 def export_cursor(
@@ -123,12 +169,25 @@ def export_cursor(
     plugins: list[str] | None = None,
     sync_root: bool = False,
 ) -> list[Path]:
+    """Export Cursor plugins.
+
+    sync_root=True writes to plugins/cursor/ and refreshes root marketplace.json.
+    Otherwise writes to output_dir or dist/cursor/.
+    """
     root = root or repo_root()
-    output_dir = output_dir or (root if sync_root else root / "dist" / "cursor")
+    sync_plugins = sync_root
+    if output_dir is None:
+        output_dir = cursor_plugins_dir(root) if sync_plugins else root / "dist" / "cursor"
+    elif sync_plugins:
+        # Callers historically passed root; redirect to plugins/cursor/
+        if output_dir.resolve() == root.resolve():
+            output_dir = cursor_plugins_dir(root)
+
+    output_dir.mkdir(parents=True, exist_ok=True)
     manifest = load_manifest(root)
     names = plugins or list(manifest["plugins"].keys())
     results = []
     for name in names:
         results.append(export_cursor_plugin(root, name, output_dir))
-    export_cursor_marketplace(root, output_dir)
+    export_cursor_marketplace(root, output_dir, sync_plugins=sync_plugins)
     return results

@@ -33,7 +33,7 @@ create_plugin: false     # if true + plugin missing, use registry new_plugins
 ## Commands
 
 ```bash
-# Full pipeline: ingest landing → validate → sync Cursor → export Claude/Codex
+# Full pipeline: ingest landing → validate → sync plugins/cursor → export Claude/Codex
 ./bin/skills-maintain
 
 # Preview without writing
@@ -48,13 +48,22 @@ create_plugin: false     # if true + plugin missing, use registry new_plugins
 
 ## Periodic / autonomous use
 
-Cron or CI (every 6 hours example):
+Prefer the cron helper (PATH, logging, install/uninstall):
 
 ```bash
-cd /path/to/skills && ./bin/skills-maintain >> landing/maintain.log 2>&1
+./scripts/cron/install.sh --dry-run
+./scripts/cron/install.sh
+```
+
+Or a raw crontab line:
+
+```bash
+cd /path/to/skills && ./scripts/cron/skills-maintain.sh
 ```
 
 Or Cursor automation: run `skills-maintain` when `landing/` changes.
+
+See [scripts/cron/README.md](../scripts/cron/README.md).
 
 ## Skill requirements
 

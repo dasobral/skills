@@ -10,45 +10,76 @@
   "plugins": [
     {
       "name": "codecraft",
-      "source": "codecraft",
+      "source": "plugins/cursor/codecraft",
       "description": "Codebase analysis, convention capture, style-conformant implementation, quality review, and cognitive debt auditing.",
       "category": "developer-tools",
-      "tags": ["code-quality", "conventions", "review", "refactoring"]
+      "tags": [
+        "code-quality",
+        "conventions",
+        "review",
+        "refactoring"
+      ]
     },
     {
       "name": "cpp-qkd-toolkit",
-      "source": "cpp-qkd-toolkit",
+      "source": "plugins/cursor/cpp-qkd-toolkit",
       "description": "Production C++ for defense and QKD ground-segment systems: implement, build, and multi-lens review.",
       "category": "developer-tools",
-      "tags": ["cpp", "qkd", "security", "realtime", "embedded"]
+      "tags": [
+        "cpp",
+        "qkd",
+        "security",
+        "realtime",
+        "embedded"
+      ]
     },
     {
       "name": "agent-platform",
-      "source": "agent-platform",
+      "source": "plugins/cursor/agent-platform",
       "description": "Author agent definitions and run multi-agent pipelines with task graphs and artifact routing.",
       "category": "developer-tools",
-      "tags": ["agents", "orchestration", "multi-agent"]
+      "tags": [
+        "agents",
+        "orchestration",
+        "multi-agent"
+      ]
     },
     {
       "name": "aos-stack",
-      "source": "aos-stack",
+      "source": "plugins/cursor/aos-stack",
       "description": "Agentic orchestration infrastructure: Rust services, LiteLLM proxy, and local LLM inference.",
       "category": "developer-tools",
-      "tags": ["rust", "inference", "vllm", "litellm", "aos"]
+      "tags": [
+        "rust",
+        "inference",
+        "vllm",
+        "litellm",
+        "aos"
+      ]
     },
     {
       "name": "scientific-computing",
-      "source": "scientific-computing",
+      "source": "plugins/cursor/scientific-computing",
       "description": "Design scientific computing platforms with compute-layer separation and right-sized infrastructure.",
       "category": "developer-tools",
-      "tags": ["hpc", "scientific", "architecture", "emulators"]
+      "tags": [
+        "hpc",
+        "scientific",
+        "architecture",
+        "emulators"
+      ]
     },
     {
       "name": "career-writer",
-      "source": "career-writer",
+      "source": "plugins/cursor/career-writer",
       "description": "Professional career documents: CVs, cover letters, and application materials with audience-aware framing.",
       "category": "productivity",
-      "tags": ["career", "cv", "cover-letter", "writing"]
+      "tags": [
+        "career",
+        "cv",
+        "cover-letter",
+        "writing"
+      ]
     }
   ]
 }

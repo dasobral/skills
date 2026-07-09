@@ -33,6 +33,11 @@ def cursor_adapter_dir(root: Path, plugin: str) -> Path:
     return root / "adapters" / "cursor" / plugin
 
 
+def cursor_plugins_dir(root: Path) -> Path:
+    """Generated Cursor plugins live under plugins/cursor/ (not repo root)."""
+    return root / "plugins" / "cursor"
+
+
 def plugin_skill_names(manifest: dict[str, Any], plugin: str) -> list[str]:
     plugins = manifest["plugins"]
     if plugin not in plugins:

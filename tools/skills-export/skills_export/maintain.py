@@ -54,8 +54,11 @@ def maintain(
         return result
 
     if not skip_export:
-        export_cursor(root, root, plugins=plugins, sync_root=True)
-        result.exports["cursor"] = str(root)
+        from .manifest import cursor_plugins_dir
+
+        cursor_out = cursor_plugins_dir(root)
+        export_cursor(root, cursor_out, plugins=plugins, sync_root=True)
+        result.exports["cursor"] = str(cursor_out)
 
         claude_out = root / "dist" / "claude"
         export_claude(root, claude_out, plugins=plugins)

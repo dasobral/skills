@@ -1,5 +1,30 @@
 # Changelog
 
+## 2.2.0 — 2026-07-09
+
+### Added
+
+- **`scripts/cron/`** — maintainable cron setup:
+  - `skills-maintain.sh` wrapper (PATH, PyYAML check, logging, exit codes)
+  - `install.sh` / `uninstall.sh` to configure schedule/repo and manage crontab
+  - `config.env.example` for basics (schedule, python, log path)
+- **`plugins/cursor/`** — Cursor plugins live here (ready-to-use target)
+- **`./bin/skills-install cursor --plugins --user`** — install full plugins to `~/.cursor/plugins/local/`
+
+### Changed
+
+- Cursor sync/maintain now writes to **`plugins/cursor/`** instead of repo root
+- Marketplace `source` paths updated to `plugins/cursor/<name>`
+- Docs clarify Cursor-first layout; Claude/Codex remain `dist/` exports
+
+### Migration
+
+Root plugin folders (`codecraft/`, etc.) moved to `plugins/cursor/`. Re-run:
+
+```bash
+./bin/skills-export sync cursor
+```
+
 ## 2.1.0 — 2026-07-09
 
 ### Added
