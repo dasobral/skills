@@ -4,6 +4,15 @@
 
 ### Added
 
+- **`landing/`** drop zone for skills from any platform (portable, Claude, Codex, Cursor)
+- **`skills-export ingest`** — normalize and merge landing → `core/skills/`
+- **`skills-export maintain` / `translate`** — full ingest + validate + export pipeline
+- **`bin/skills-maintain`** — one-shot autonomous maintenance
+- **`bin/skills-install`** — install `dist/` exports to standard platform paths
+- Platform normalization (`normalize.py`) for portable core
+
+### Added (prior 2.1.0 commit on branch)
+
 - **Portable core** (`core/skills/`, `core/manifest.yaml`) as single source of truth
 - **skills-export** CLI — export/sync to Cursor, Claude Code, and Codex
 - **Adapters** (`adapters/cursor/`, `adapters/claude/`, `adapters/codex/`)

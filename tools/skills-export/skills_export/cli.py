@@ -8,6 +8,8 @@ from . import __version__
 from .exporters.claude import export_claude
 from .exporters.codex import export_codex
 from .exporters.cursor import export_cursor
+from .ingest import ingest_landing, write_ingest_report
+from .maintain import maintain
 from .manifest import load_manifest, repo_root
 from .validate import validate_core
 
@@ -15,7 +17,10 @@ from .validate import validate_core
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
         prog="skills-export",
-        description="Export portable skill core to Cursor, Claude Code, or Codex bundles.",
+        description=(
+            "Unified skills framework: ingest landing zone, export to "
+            "Cursor, Claude Code, and Codex."
+        ),
     )
     parser.add_argument("--version", action="version", version=f"%(prog)s {__version__}")
     parser.add_argument(
@@ -78,6 +83,32 @@ def main(argv: list[str] | None = None) -> int:
     p_list = sub.add_parser("list", help="List plugins and skills")
     p_list.add_argument("--plugins", action="store_true", help="List plugins only")
     p_list.add_argument("--skills", action="store_true", help="List skills only")
+
+    p_ingest = sub.add_parser(
+        "ingest",
+        help="Ingest skills from landing/ into core (normalize + manifest)",
+    )
+    p_ingest.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Validate landing without writing core or archiving",
+    )
+
+    p_maintain = sub.add_parser(
+        "maintain",
+        help="Ingest landing → validate → sync Cursor → export Claude/Codex",
+    )
+    p_maintain.add_argument("--dry-run", action="store_true")
+    p_maintain.add_argument("--skip-ingest", action="store_true")
+    p_maintain.add_argument("--skip-export", action="store_true")
+    p_maintain.add_argument("--plugin", action="append", dest="plugins")
+
+    p_translate = sub.add_parser(
+        "translate",
+        help="Alias: maintain (ingest + export all platforms)",
+    )
+    p_translate.add_argument("--dry-run", action="store_true")
+    p_translate.add_argument("--plugin", action="append", dest="plugins")
 
     args = parser.parse_args(argv)
     root = (args.root or repo_root()).resolve()
@@ -151,6 +182,43 @@ def main(argv: list[str] | None = None) -> int:
                     bundles=not args.no_bundles,
                 )
             print(f"exported {target} -> {out} ({len(paths)} artifact(s))")
+        return 0
+
+    if args.command == "ingest":
+        result = ingest_landing(root, dry_run=args.dry_run)
+        write_ingest_report(root, result)
+        if result.ingested_skills:
+            print(f"ingested skills: {', '.join(result.ingested_skills)}")
+        if result.ingested_plugins:
+            print(f"ingested plugins: {', '.join(result.ingested_plugins)}")
+        if result.archived:
+            print(f"archived: {', '.join(result.archived)}")
+        if result.errors:
+            print("errors:", file=sys.stderr)
+            for err in result.errors:
+                print(f"  - {err}", file=sys.stderr)
+            return 1
+        print("ingest OK" + (" (dry-run)" if args.dry_run else ""))
+        return 0
+
+    if args.command in ("maintain", "translate"):
+        result = maintain(
+            root,
+            dry_run=args.dry_run,
+            skip_ingest=getattr(args, "skip_ingest", False),
+            skip_export=False,
+            plugins=getattr(args, "plugins", None),
+        )
+        if result.ingest_skills:
+            print(f"ingested: {', '.join(result.ingest_skills)}")
+        for platform, path in result.exports.items():
+            print(f"exported {platform} -> {path}")
+        errors = result.ingest_errors + result.validate_errors
+        if errors:
+            for err in errors:
+                print(f"  - {err}", file=sys.stderr)
+            return 1
+        print("maintain OK" + (" (dry-run)" if args.dry_run else ""))
         return 0
 
     return 1
