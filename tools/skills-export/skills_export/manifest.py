@@ -38,6 +38,14 @@ def cursor_plugins_dir(root: Path) -> Path:
     return root / "plugins" / "cursor"
 
 
+def codex_adapter_dir(root: Path, plugin_name: str) -> Path:
+    return root / "adapters" / "codex" / plugin_name
+
+
+def codex_plugins_dir(root: Path) -> Path:
+    return root / "plugins" / "codex"
+
+
 def plugin_skill_names(manifest: dict[str, Any], plugin: str) -> list[str]:
     plugins = manifest["plugins"]
     if plugin not in plugins:

@@ -250,7 +250,15 @@ Write `.agents/plugins/marketplace.json` with:
   "plugins": [
     {
       "name": "codecraft",
-      "source": {"path": "./plugins/codex/codecraft"},
+      "source": {
+        "source": "local",
+        "path": "./plugins/codex/codecraft"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Developer Tools",
       "interface": {"displayName": "Codecraft"}
     }
   ]

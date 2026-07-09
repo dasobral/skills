@@ -6,7 +6,19 @@ version: 1
 default_plugin: codecraft
 
 assignments:
-  # my-skill: codecraft
+  assess-repository-trust: agentic-trust-gate
+  review-mcp-drift: agentic-trust-gate
+  build-attack-scenario: agent-attack-replay
+  run-agent-attack-replay: agent-attack-replay
+  build-crypto-inventory: crypto-change-radar
+  review-crypto-delta: crypto-change-radar
+  plan-pqc-migration: crypto-change-radar
+  test-crypto-interoperability: crypto-change-radar
+  qualify-entropy-source: entropy-flight-recorder
+  review-entropy-change: entropy-flight-recorder
+  capture-scientific-run: scientific-claim-ledger
+  audit-scientific-claim: scientific-claim-ledger
+  challenge-sciml-model: scientific-claim-ledger
 
 new_plugins:
   # my-toolkit:

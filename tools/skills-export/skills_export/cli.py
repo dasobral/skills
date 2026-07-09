@@ -112,6 +112,17 @@ def main(argv: list[str] | None = None) -> int:
 
     args = parser.parse_args(argv)
     root = (args.root or repo_root()).resolve()
+    if args.command == "export" and args.target in ("codex", "all"):
+        if args.no_flat:
+            parser.error(
+                "Codex export only produces flat skills; --no-flat would "
+                "produce no Codex artifact"
+            )
+        if args.no_bundles:
+            parser.error(
+                "Codex legacy bundles were removed; --no-bundles is not a "
+                "Codex export mode"
+            )
 
     if args.command == "validate":
         errors = validate_core(root)
@@ -182,7 +193,6 @@ def main(argv: list[str] | None = None) -> int:
                     out,
                     plugins=args.plugins,
                     flat=not args.no_flat,
-                    bundles=not args.no_bundles,
                 )
             print(f"exported {target} -> {out} ({len(paths)} artifact(s))")
         return 0
