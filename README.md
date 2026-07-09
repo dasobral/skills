@@ -17,6 +17,7 @@ landing/ (any platform)  →  ingest + normalize  →  core/skills/
   (committed)            (generated)           (generated)
 ```
 
+Interactive overview: [docs/artifacts/skills-framework-overview.html](./docs/artifacts/skills-framework-overview.html)
 ## Quick start
 
 ```bash
