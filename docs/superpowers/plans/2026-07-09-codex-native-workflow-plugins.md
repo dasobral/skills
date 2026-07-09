@@ -796,4 +796,3 @@ Expected: no documentation describes legacy bundles as native plugins.
 git add README.md adapters/codex/README.md plugins/README.md tools/skills-export/README.md landing/README.md CHANGELOG.md tools/skills-export/tests/integration
 git commit -m "docs: document native Codex workflows"
 ```
-
