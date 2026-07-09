@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "hooks": {
+    "sessionStart": [
+      {
+        "command": "./hooks/scripts/detect-gpu.sh",
+        "timeout": 5
+      }
+    ]
+  }
+}
