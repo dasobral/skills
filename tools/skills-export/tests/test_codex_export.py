@@ -2,12 +2,18 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import subprocess
 import sys
 from pathlib import Path
 
 import pytest
 import yaml
+
+try:
+    import tomllib
+except ModuleNotFoundError:  # Python 3.10
+    import tomli as tomllib
 
 from skills_export.exporters.codex import (
     export_codex,
@@ -17,6 +23,51 @@ from skills_export.exporters.codex import (
 )
 from skills_export.manifest import codex_adapter_dir, codex_plugins_dir
 from skills_export.validate_codex import validate_codex_plugins
+
+
+EXISTING_CODEX_AGENTS = {
+    "codecraft": 2,
+    "cpp-qkd-toolkit": 2,
+    "agent-platform": 4,
+    "aos-stack": 2,
+    "scientific-computing": 1,
+    "career-writer": 1,
+}
+CODEX_HOOK_PLUGINS = {
+    "codecraft": "SessionStart",
+    "cpp-qkd-toolkit": "PreToolUse",
+    "aos-stack": "SessionStart",
+}
+AGENT_ROLE_TERMS = {
+    ("codecraft", "code-reviewer"): ("clarity", "security", "evidence"),
+    ("codecraft", "convention-analyst"): ("convention", "imperative", "evidence"),
+    ("cpp-qkd-toolkit", "cpp-security-reviewer"): (
+        "threat model",
+        "cryptographic",
+        "critical",
+    ),
+    ("cpp-qkd-toolkit", "cpp-realtime-reviewer"): (
+        "concurrency",
+        "hot path",
+        "data races",
+    ),
+    ("agent-platform", "reader"): ("reading order", "verbatim", "json array"),
+    ("agent-platform", "analyzer"): ("architecture", "risks", "quotation"),
+    ("agent-platform", "orchestrator"): ("dependencies", "artifacts", "concurrently"),
+    ("agent-platform", "report-writer"): ("executive", "findings", "risks"),
+    ("aos-stack", "rust-reviewer"): ("async", "error context", "dependency"),
+    ("aos-stack", "inference-advisor"): ("vram", "vllm", "litellm"),
+    ("scientific-computing", "platform-designer"): (
+        "scientific",
+        "infrastructure",
+        "kernels",
+    ),
+    ("career-writer", "document-editor"): ("audience", "credentials", "invent"),
+}
+OUTPUT_TYPES_TEXT = (
+    "`json_object`, `markdown_document`, `file_write`, `inline_text`, "
+    "or `tool_call_sequence`"
+)
 
 
 def _write_codex_overlay(root: Path, plugin_name: str = "codecraft") -> None:
@@ -33,9 +84,9 @@ def _write_codex_overlay(root: Path, plugin_name: str = "codecraft") -> None:
             )
 
     adapter = root / "adapters" / "codex" / plugin_name
-    (adapter / "agents").mkdir(parents=True)
-    (adapter / "hooks").mkdir()
-    (adapter / ".codex-plugin").mkdir()
+    (adapter / "agents").mkdir(parents=True, exist_ok=True)
+    (adapter / "hooks").mkdir(exist_ok=True)
+    (adapter / ".codex-plugin").mkdir(exist_ok=True)
     (adapter / "agents" / "code-reviewer.toml").write_text(
         'name = "code-reviewer"\n'
         'description = "Review code."\n'
@@ -68,7 +119,7 @@ def _write_codex_overlay(root: Path, plugin_name: str = "codecraft") -> None:
         encoding="utf-8",
     )
     scripts = adapter / "hooks" / "scripts"
-    scripts.mkdir()
+    scripts.mkdir(exist_ok=True)
     (scripts / "check.py").write_text("print('ok')\n", encoding="utf-8")
     (adapter / ".codex-plugin" / "plugin.json").write_text(
         '{"interface": {"displayName": "Codecraft"}}\n', encoding="utf-8"
@@ -114,6 +165,408 @@ def test_codex_path_helpers(repo_copy: Path) -> None:
         repo_copy / "adapters" / "codex" / "codecraft"
     )
     assert codex_plugins_dir(repo_copy) == repo_copy / "plugins" / "codex"
+
+
+def test_existing_plugins_have_complete_codex_agent_templates(
+    repo_copy: Path,
+) -> None:
+    _limit_manifest(repo_copy, list(EXISTING_CODEX_AGENTS))
+
+    for plugin_name, expected_count in EXISTING_CODEX_AGENTS.items():
+        plugin = export_codex_plugin(
+            repo_copy, plugin_name, repo_copy / "plugins" / "codex"
+        )
+        agent_files = sorted((plugin / "agents").glob("*.toml"))
+        assert len(agent_files) == expected_count, plugin_name
+        for agent_file in agent_files:
+            data = tomllib.loads(agent_file.read_text(encoding="utf-8"))
+            assert data["name"] == agent_file.stem
+            for key in ("name", "description", "developer_instructions"):
+                assert isinstance(data.get(key), str)
+                assert data[key].strip()
+            text = agent_file.read_text(encoding="utf-8")
+            assert not re.search(r"(?m)^\s*model\s*=", text)
+            assert "Task tool" not in text
+            assert "subagent_type" not in text
+            semantic_text = (
+                f"{data['description']}\n{data['developer_instructions']}".lower()
+            )
+            for term in AGENT_ROLE_TERMS[(plugin_name, data["name"])]:
+                assert term in semantic_text, (plugin_name, data["name"], term)
+
+
+def test_existing_plugins_have_codex_metadata_overlays() -> None:
+    adapters = Path(__file__).parents[3] / "adapters" / "codex"
+
+    for plugin_name in EXISTING_CODEX_AGENTS:
+        overlay_path = adapters / plugin_name / ".codex-plugin" / "plugin.json"
+        overlay = json.loads(overlay_path.read_text(encoding="utf-8"))
+        assert set(overlay) == {"interface"}
+        assert isinstance(overlay["interface"].get("displayName"), str)
+        assert overlay["interface"]["displayName"].strip()
+
+
+def test_existing_plugin_hooks_use_native_codex_schema(repo_copy: Path) -> None:
+    _limit_manifest(repo_copy, list(EXISTING_CODEX_AGENTS))
+
+    for plugin_name, expected_event in CODEX_HOOK_PLUGINS.items():
+        plugin = export_codex_plugin(
+            repo_copy, plugin_name, repo_copy / "plugins" / "codex"
+        )
+        hooks_path = plugin / "hooks" / "hooks.json"
+        data = json.loads(hooks_path.read_text(encoding="utf-8"))
+        assert set(data) == {"hooks"}
+        assert set(data["hooks"]) == {expected_event}
+        for group in data["hooks"][expected_event]:
+            assert set(group) <= {"matcher", "hooks"}
+            assert group["hooks"]
+            for handler in group["hooks"]:
+                assert handler["type"] == "command"
+                assert handler["command"].startswith("python3 ${PLUGIN_ROOT}/")
+                assert 0 < handler["timeout"] <= 10
+                assert set(handler) <= {
+                    "type",
+                    "command",
+                    "timeout",
+                    "statusMessage",
+                }
+
+    for plugin_name in set(EXISTING_CODEX_AGENTS) - set(CODEX_HOOK_PLUGINS):
+        assert not (repo_copy / "adapters" / "codex" / plugin_name / "hooks").exists()
+
+
+def test_existing_plugin_codex_metadata_matches_exported_components(
+    repo_copy: Path,
+) -> None:
+    _limit_manifest(repo_copy, list(EXISTING_CODEX_AGENTS))
+    manifest = yaml.safe_load(
+        (repo_copy / "core" / "manifest.yaml").read_text(encoding="utf-8")
+    )
+
+    for plugin_name in EXISTING_CODEX_AGENTS:
+        plugin = export_codex_plugin(
+            repo_copy, plugin_name, repo_copy / "plugins" / "codex"
+        )
+        plugin_json = json.loads(
+            (plugin / ".codex-plugin" / "plugin.json").read_text(encoding="utf-8")
+        )
+        metadata = manifest["plugins"][plugin_name]["codex"]
+        assert metadata["agents"] is (plugin / "agents").is_dir()
+        assert metadata["hooks"] is (plugin / "hooks" / "hooks.json").is_file()
+        assert ("hooks" in plugin_json) is metadata["hooks"]
+
+
+@pytest.mark.parametrize(
+    ("plugin_name", "script_name", "event", "hook_input", "expected_fragment"),
+    [
+        (
+            "codecraft",
+            "check_conventions_age.py",
+            "SessionStart",
+            {"hook_event_name": "SessionStart", "source": "startup"},
+            "CODING_REQUIREMENTS.md is",
+        ),
+        (
+            "cpp-qkd-toolkit",
+            "cpp_security_hint.py",
+            "PreToolUse",
+            {
+                "hook_event_name": "PreToolUse",
+                "tool_name": "apply_patch",
+                "tool_input": {
+                    "command": "*** Update File: src/key_store.cpp\n+ log(nonce);"
+                },
+            },
+            "security-sensitive",
+        ),
+        (
+            "aos-stack",
+            "detect_gpu.py",
+            "SessionStart",
+            {"hook_event_name": "SessionStart", "source": "startup"},
+            "GPU detected",
+        ),
+    ],
+)
+def test_codex_hooks_emit_native_additional_context(
+    repo_copy: Path,
+    plugin_name: str,
+    script_name: str,
+    event: str,
+    hook_input: dict[str, object],
+    expected_fragment: str,
+) -> None:
+    script = (
+        repo_copy
+        / "adapters"
+        / "codex"
+        / plugin_name
+        / "hooks"
+        / "scripts"
+        / script_name
+    )
+    if plugin_name == "codecraft":
+        requirements = repo_copy / "CODING_REQUIREMENTS.md"
+        requirements.write_text("# Conventions\n", encoding="utf-8")
+        old = 1_600_000_000
+        os.utime(requirements, (old, old))
+    environment = os.environ.copy()
+    if plugin_name == "aos-stack":
+        binary_dir = repo_copy / "test-bin"
+        binary_dir.mkdir()
+        nvidia_smi = binary_dir / "nvidia-smi"
+        nvidia_smi.write_text(
+            "#!/bin/sh\nprintf 'Test GPU, 24576 MiB\\n'\n", encoding="utf-8"
+        )
+        nvidia_smi.chmod(0o755)
+        environment["PATH"] = f"{binary_dir}{os.pathsep}{environment['PATH']}"
+
+    completed = subprocess.run(
+        [sys.executable, str(script)],
+        input=json.dumps(hook_input),
+        text=True,
+        capture_output=True,
+        check=True,
+        cwd=repo_copy,
+        env=environment,
+    )
+    output = json.loads(completed.stdout)
+    assert set(output) == {"hookSpecificOutput"}
+    assert output["hookSpecificOutput"]["hookEventName"] == event
+    assert expected_fragment in output["hookSpecificOutput"]["additionalContext"]
+
+
+def test_codecraft_hook_resolves_git_root_and_ignores_cursor_control_files(
+    repo_copy: Path,
+) -> None:
+    subprocess.run(["git", "init", "-q"], cwd=repo_copy, check=True)
+    nested = repo_copy / "packages" / "service"
+    nested.mkdir(parents=True)
+    cursor_requirements = repo_copy / ".cursor" / "CODING_REQUIREMENTS.md"
+    cursor_requirements.parent.mkdir()
+    cursor_requirements.write_text("# Cursor-only\n", encoding="utf-8")
+    codex_requirements = repo_copy / ".codex" / "CODING_REQUIREMENTS.md"
+    codex_requirements.parent.mkdir()
+    codex_requirements.write_text("# Codex\n", encoding="utf-8")
+    old = 1_600_000_000
+    os.utime(cursor_requirements, (old, old))
+    script = (
+        repo_copy
+        / "adapters"
+        / "codex"
+        / "codecraft"
+        / "hooks"
+        / "scripts"
+        / "check_conventions_age.py"
+    )
+    hook_input = {
+        "hook_event_name": "SessionStart",
+        "source": "startup",
+        "cwd": str(nested),
+    }
+
+    fresh = subprocess.run(
+        [sys.executable, str(script)],
+        input=json.dumps(hook_input),
+        text=True,
+        capture_output=True,
+        check=True,
+        cwd=nested,
+    )
+    assert fresh.stdout == ""
+    assert fresh.stderr == ""
+
+    os.utime(codex_requirements, (old, old))
+    stale = subprocess.run(
+        [sys.executable, str(script)],
+        input=json.dumps(hook_input),
+        text=True,
+        capture_output=True,
+        check=True,
+        cwd=nested,
+    )
+    output = json.loads(stale.stdout)
+    context = output["hookSpecificOutput"]["additionalContext"]
+    assert ".codex/CODING_REQUIREMENTS.md" in context
+    assert ".cursor" not in context
+
+
+@pytest.mark.parametrize(
+    ("plugin_name", "script_name", "valid_input"),
+    [
+        (
+            "codecraft",
+            "check_conventions_age.py",
+            {"hook_event_name": "SessionStart", "cwd": "."},
+        ),
+        (
+            "cpp-qkd-toolkit",
+            "cpp_security_hint.py",
+            {
+                "hook_event_name": "PreToolUse",
+                "tool_name": "apply_patch",
+                "tool_input": {"command": "*** Update File: README.md\n+ secret"},
+            },
+        ),
+        (
+            "aos-stack",
+            "detect_gpu.py",
+            {"hook_event_name": "SessionStart", "cwd": "."},
+        ),
+    ],
+)
+def test_codex_hooks_noop_safely_for_irrelevant_and_invalid_input(
+    repo_copy: Path,
+    plugin_name: str,
+    script_name: str,
+    valid_input: dict[str, object],
+) -> None:
+    script = (
+        repo_copy
+        / "adapters"
+        / "codex"
+        / plugin_name
+        / "hooks"
+        / "scripts"
+        / script_name
+    )
+    environment = os.environ.copy()
+    if plugin_name == "aos-stack":
+        environment["PATH"] = ""
+
+    for hook_input in (json.dumps(valid_input), "{invalid-json"):
+        completed = subprocess.run(
+            [sys.executable, str(script)],
+            input=hook_input,
+            text=True,
+            capture_output=True,
+            check=True,
+            cwd=repo_copy,
+            env=environment,
+        )
+        assert completed.stdout == ""
+        assert completed.stderr == ""
+
+
+def test_portable_convention_reference_has_no_platform_control_paths() -> None:
+    root = Path(__file__).parents[3]
+    portable_skill = root / "core" / "skills" / "write-conformant-code"
+    portable_paths = [
+        portable_skill / "SKILL.md",
+        portable_skill / "references" / "repository-conventions.md",
+    ]
+    codex_hook = (
+        root
+        / "adapters"
+        / "codex"
+        / "codecraft"
+        / "hooks"
+        / "scripts"
+        / "check_conventions_age.py"
+    ).read_text(encoding="utf-8")
+
+    for path in portable_paths:
+        assert ".cursor" not in path.read_text(encoding="utf-8").lower()
+    assert ".cursor" not in codex_hook.lower()
+    assert ".codex/CODING_REQUIREMENTS.md" in codex_hook
+
+
+def test_codex_adapter_readme_documents_native_plugin_architecture() -> None:
+    readme = (
+        Path(__file__).parents[3] / "adapters" / "codex" / "README.md"
+    ).read_text(encoding="utf-8")
+
+    assert ".codex-plugin/plugin.json" in readme
+    assert "plugins/codex/" in readme
+    assert "hooks/hooks.json" in readme
+    assert "bundle.json" not in readme
+    assert ".agents/instructions.md" not in readme
+
+
+def test_create_agent_skill_is_platform_aware() -> None:
+    root = Path(__file__).parents[3]
+    skill = (root / "core" / "skills" / "create-agent" / "SKILL.md").read_text(
+        encoding="utf-8"
+    )
+    conventions = (
+        root
+        / "core"
+        / "skills"
+        / "create-agent"
+        / "references"
+        / "agent-conventions.md"
+    ).read_text(encoding="utf-8")
+
+    assert "unknown platform" in skill.lower()
+    assert ".codex/agents/<name>.toml" in skill
+    assert "developer_instructions" in skill
+    assert 'name = "agent-name"' in conventions
+    assert 'description = "' in conventions
+    assert 'developer_instructions = """' in conventions
+
+
+def test_create_agent_uses_one_exact_output_vocabulary() -> None:
+    root = Path(__file__).parents[3] / "core" / "skills" / "create-agent"
+    paths = [
+        root / "SKILL.md",
+        root / "references" / "agent-conventions.md",
+        root / "templates" / "agent-definition.md",
+        root / "templates" / "agent-definition.toml",
+    ]
+
+    for path in paths:
+        text = path.read_text(encoding="utf-8")
+        assert OUTPUT_TYPES_TEXT in text, path
+
+
+def test_generated_codex_agent_satisfies_documented_contract(
+    tmp_path: Path,
+) -> None:
+    root = Path(__file__).parents[3] / "core" / "skills" / "create-agent"
+    template = (root / "templates" / "agent-definition.toml").read_text(
+        encoding="utf-8"
+    )
+    replacements = {
+        "{{AGENT_NAME}}": "summarizer",
+        "{{DESCRIPTION}}": "Summarizes one document with traceable evidence.",
+        "{{ROLE}}": "You are a document summarization specialist.",
+        "{{INPUTS}}": "Receive one document_path string.",
+        "{{PROCESS}}": "Read the document, identify claims, and construct output.",
+        "{{OUTPUT_TYPE}}": "json_object",
+        "{{OUTPUT_CONTRACT}}": "Return title, claims, and source locations.",
+        "{{CONSTRAINTS}}": "Do not invent claims or modify the source.",
+        "{{INTEGRATION}}": "Return the JSON object directly to the caller.",
+    }
+    generated = template
+    for placeholder, value in replacements.items():
+        generated = generated.replace(placeholder, value)
+    assert "{{" not in generated
+    destination = tmp_path / ".codex" / "agents" / "summarizer.toml"
+    destination.parent.mkdir(parents=True)
+    destination.write_text(generated, encoding="utf-8")
+
+    data = tomllib.loads(destination.read_text(encoding="utf-8"))
+    assert data["name"] == destination.stem
+    assert data["description"] == replacements["{{DESCRIPTION}}"]
+    instructions = data["developer_instructions"]
+    for heading in (
+        "Role",
+        "Inputs",
+        "Process",
+        "Output Contract",
+        "Constraints",
+        "Integration Hooks",
+    ):
+        assert f"## {heading}" in instructions
+    match = re.search(r"Output type: `([^`]+)`", instructions)
+    assert match
+    assert match.group(1) in {
+        "json_object",
+        "markdown_document",
+        "file_write",
+        "inline_text",
+        "tool_call_sequence",
+    }
 
 
 def test_native_export_creates_codex_layout(repo_copy: Path) -> None:

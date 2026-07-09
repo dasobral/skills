@@ -94,7 +94,7 @@ plugins:
       hooks: true
     codex:
       agents: true
-      hooks: true
+      hooks: false
   aos-stack:
     display_name: AOS Stack
     version: 2.1.0

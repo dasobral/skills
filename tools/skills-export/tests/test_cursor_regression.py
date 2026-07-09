@@ -5,7 +5,7 @@ from pathlib import Path
 from skills_export.exporters.codex import export_codex_plugin
 from skills_export.exporters.cursor import export_cursor
 
-from test_codex_export import _write_codex_overlay
+from test_codex_export import EXISTING_CODEX_AGENTS, _limit_manifest
 
 
 def _hashes(root: Path) -> dict[str, bytes]:
@@ -17,18 +17,20 @@ def _hashes(root: Path) -> dict[str, bytes]:
 
 
 def test_codex_export_does_not_change_cursor_plugins(repo_copy: Path) -> None:
+    plugin_names = list(EXISTING_CODEX_AGENTS)
+    _limit_manifest(repo_copy, plugin_names)
     cursor_output = repo_copy / "plugins" / "cursor"
     export_cursor(
         repo_copy,
         cursor_output,
-        plugins=["codecraft"],
+        plugins=plugin_names,
         sync_root=False,
     )
     before = _hashes(cursor_output)
-    _write_codex_overlay(repo_copy)
 
-    export_codex_plugin(
-        repo_copy, "codecraft", repo_copy / "plugins" / "codex"
-    )
+    for plugin_name in plugin_names:
+        export_codex_plugin(
+            repo_copy, plugin_name, repo_copy / "plugins" / "codex"
+        )
 
     assert _hashes(cursor_output) == before

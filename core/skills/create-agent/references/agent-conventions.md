@@ -1,14 +1,44 @@
 # Agent Definition Conventions
 
 This reference defines the mandatory structural conventions, field formats,
-type vocabulary, and style rules for all Claude agent definition files
-(`*.md`) created or consumed by the `agent-creator` skill.
+type vocabulary, and style rules for Cursor Markdown and Codex TOML agent
+definitions created by the `create-agent` skill.
 
 ---
 
-## 1. File Layout
+## 1. Platform Selection
 
-Every agent definition file must follow this exact section order:
+Use the platform explicitly requested by the user. Infer a platform only from
+unambiguous repository configuration; otherwise ask which target to create.
+
+| Platform | Format | Default location |
+|----------|--------|------------------|
+| Cursor | Markdown with YAML frontmatter | `./agents/<name>.md` |
+| Codex | TOML | `.codex/agents/<name>.toml` |
+
+### Codex TOML
+
+Every Codex definition requires these non-empty string fields:
+
+```toml
+name = "agent-name"
+description = "One-line discovery description."
+developer_instructions = """
+You are a focused specialist. Validate the assigned inputs, follow the stated
+workflow, return the requested artifact, and report evidence for conclusions.
+"""
+```
+
+The `name` must match the filename without `.toml`. Put the Role, Inputs,
+Process, Output Contract, Constraints, and Integration Hooks content inside
+`developer_instructions`. Do not set a model or sandbox policy in a reusable
+template; those are deployment decisions.
+
+---
+
+## 2. Cursor Markdown File Layout
+
+Every Cursor agent definition file must follow this exact section order:
 
 ```
 ---
@@ -36,7 +66,7 @@ Sections must not be reordered or omitted. If a section has no content, write
 
 ---
 
-## 2. Front Matter Fields
+## 3. Cursor Front Matter Fields
 
 | Field | Format | Required | Notes |
 |-------|--------|----------|-------|
@@ -46,7 +76,7 @@ Sections must not be reordered or omitted. If a section has no content, write
 
 ---
 
-## 3. Naming Conventions
+## 4. Naming Conventions
 
 | Item | Convention | Examples |
 |------|-----------|---------|
@@ -58,7 +88,11 @@ Sections must not be reordered or omitted. If a section has no content, write
 
 ---
 
-## 4. Supported Input/Output Types
+For Codex, use the same kebab-case naming rule with a `.toml` extension.
+
+---
+
+## 5. Supported Input/Output Types
 
 Use only types from this vocabulary. Do not invent new types.
 
@@ -81,7 +115,7 @@ internal schema in the field description column or in the Output Contract.
 
 ---
 
-## 5. Process Step Rules
+## 6. Process Step Rules
 
 Process steps must satisfy all of the following:
 
@@ -108,11 +142,10 @@ Process steps must satisfy all of the following:
 
 ---
 
-## 6. Output Contract Rules
+## 7. Output Contract Rules
 
-- Every agent must declare exactly one `Output type` from the allowed values:
-  `json_object`, `markdown_document`, `file_write`, `inline_text`,
-  `tool_call_sequence`.
+- Every agent must declare exactly one `Output type` from this exact vocabulary:
+  `json_object`, `markdown_document`, `file_write`, `inline_text`, or `tool_call_sequence`.
 
 - **`json_object`:** Must include a complete JSON Schema block and at least
   one example output. The `"required"` array must list all fields the
@@ -133,7 +166,7 @@ Process steps must satisfy all of the following:
 
 ---
 
-## 7. Constraint Rules
+## 8. Constraint Rules
 
 - Every agent must have at least **2 DO** rules and at least **2 DO NOT** rules.
 - DO rules must be positive imperatives: "DO validate …", "DO cite …".
@@ -150,7 +183,7 @@ Process steps must satisfy all of the following:
 
 ---
 
-## 8. Integration Hooks — Mandatory Fields
+## 9. Integration Hooks — Mandatory Fields
 
 All six fields in the Integration Hooks table are mandatory. If an agent is
 standalone (no orchestrator), write `standalone — not applicable` for
@@ -166,7 +199,7 @@ upstream/downstream fields and `not applicable` for parallelism.
 
 ---
 
-## 9. Versioning Policy
+## 10. Versioning Policy
 
 | Change type | Version bump | Example |
 |-------------|--------------|---------|
@@ -179,13 +212,15 @@ upstream/downstream fields and `not applicable` for parallelism.
 
 ---
 
-## 10. File Placement
+## 11. File Placement
 
 | Context | Path |
 |---------|------|
-| Inside a skill | `<skill-root>/agents/{agent-name}.md` |
-| Standalone multi-agent system | `./agents/{agent-name}.md` |
-| Shared library of reusable agents | `<repo-root>/shared-agents/{agent-name}.md` |
+| Cursor inside a skill | `<skill-root>/agents/{agent-name}.md` |
+| Cursor standalone system | `./agents/{agent-name}.md` |
+| Cursor shared library | `<repo-root>/shared-agents/{agent-name}.md` |
+| Codex project agent | `<repo-root>/.codex/agents/{agent-name}.toml` |
+| Codex user agent | `~/.codex/agents/{agent-name}.toml` |
 
 Orchestrators reference agents by their relative path from the skill root.
 Example in a SKILL.md orchestration step:
@@ -198,7 +233,7 @@ Then invoke it via the Agent tool with the following inputs: ...
 
 ---
 
-## 11. Style Rules
+## 12. Style Rules
 
 - Write all prose in the **second person** directed at the agent:
   "You are …", "You receive …", "You produce …".

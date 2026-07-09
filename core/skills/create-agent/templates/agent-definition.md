@@ -120,7 +120,7 @@ version: 1.0.0
 ## Output Contract
 
 **Output type:** `{{OUTPUT_TYPE}}`
-<!-- Allowed values: json_object · markdown_document · file_write · inline_text · tool_call_sequence -->
+<!-- Allowed values: `json_object`, `markdown_document`, `file_write`, `inline_text`, or `tool_call_sequence` -->
 
 {{#if OUTPUT_TYPE == "json_object"}}
 ### JSON Schema

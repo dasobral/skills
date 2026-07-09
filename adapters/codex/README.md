@@ -1,11 +1,38 @@
-# Codex adapter
+# Codex adapters
 
-Codex bundles are **generated** by `skills-export export codex`.
+This directory contains the Codex-specific authoring overlays for native
+plugins. Portable skills and shared metadata remain under `core/`; generated
+native plugins are written under `plugins/codex/`.
 
-Each bundle includes:
-- `.agents/skills/<skill>/` — portable core skills (Codex discovery path)
-- `.agents/instructions.md` — convention pointer
-- `AGENTS.md` — imports instructions
-- `bundle.json` — install metadata
+## Overlay layout
 
-Flat export (`dist/codex/skills/`) installs to `~/.codex/skills/` or `~/.agents/skills/`.
+An adapter may provide:
+
+- `.codex-plugin/plugin.json` — Codex presentation metadata merged with the
+  core plugin manifest;
+- `agents/*.toml` — optional project/user agent templates;
+- `hooks/hooks.json` and `hooks/scripts/` — optional native Codex lifecycle
+  hooks using `${PLUGIN_ROOT}`;
+- `skills/` and safe assets — Codex-only additions.
+
+Agent templates are bundled but are not installed automatically. Plugins with
+agents receive the shared `install-plugin-agents` skill, which previews and
+installs them into project or user `.codex/agents/` only after confirmation.
+
+## Generated native plugin
+
+Each generated `plugins/codex/<plugin>/` contains:
+
+- `.codex-plugin/plugin.json`;
+- `skills/<skill>/`;
+- optional `agents/*.toml`;
+- optional `hooks/hooks.json` and bundled scripts;
+- a generated `README.md`.
+
+The native marketplace is generated at `.agents/plugins/marketplace.json`.
+Flat skill export remains a separate compatibility artifact at
+`dist/codex/skills/`.
+
+Review and trust every bundled hook before enabling it. Hooks receive project
+context on standard input, emit the official Codex hook output schema, use
+bounded timeouts, and must not write project files.

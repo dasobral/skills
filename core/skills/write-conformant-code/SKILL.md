@@ -21,9 +21,11 @@ analyze-codebase → write-conformant-code → review-quality → audit-cognitiv
 
 ## Step 1 — Load Style Context
 
+Read `references/repository-conventions.md` before selecting a style source.
+
 | Priority | Source |
 |----------|--------|
-| 1 | `CODING_REQUIREMENTS.md` (`.cursor/`, `docs/`, or root) |
+| 1 | `CODING_REQUIREMENTS.md` (`docs/` or repository root) |
 | 2 | `review-quality` output in current conversation |
 | 3 | User-provided style notes |
 | 4 | `references/default-style.md` for detected language |
