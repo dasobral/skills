@@ -1,0 +1,60 @@
+# LiteLLM Proxy Configuration — AOS Local Executor
+# ──────────────────────────────────────────────────────────────────────────────
+# Template for the ml-inference-optimizer skill.
+# Replace all <<PLACEHOLDERS>> before use.
+#
+# Architecture:
+#   Cloud Orchestrator (Opus-level)
+#     → LiteLLM Proxy (this config)
+#       → Local vLLM endpoint (RTX 3080)
+#
+# Key rules:
+#   - Use "openai/<alias>" prefix so LiteLLM treats vLLM as OpenAI-compatible
+#   - Set timeout: 30 — local models under VRAM pressure can stall
+#   - routing_strategy: least-busy serialises requests to the single GPU slot
+#   - Never run two models simultaneously on this hardware
+# ──────────────────────────────────────────────────────────────────────────────
+
+model_list:
+  # ── Primary: Qwen2.5-Coder-14B-AWQ (recommended for ≤3 tool calls) ──────────
+  - model_name: local-coder-14b
+    litellm_params:
+      model: openai/qwen25-coder-14b    # must match --served-model-name in vLLM
+      api_base: http://localhost:8000/v1
+      api_key: "none"
+      max_tokens: 4096
+      timeout: 30
+
+  # ── Secondary: Qwen3-8B (tool-calling, single-step tasks) ───────────────────
+  # Uncomment when loaded via LRU eviction — never load both simultaneously.
+  # - model_name: local-coder-8b
+  #   litellm_params:
+  #     model: openai/qwen3-8b          # must match --served-model-name in vLLM
+  #     api_base: http://localhost:8000/v1
+  #     api_key: "none"
+  #     max_tokens: 4096
+  #     timeout: 30
+
+  # ── Cloud Orchestrator (Opus-level — for reasoning, planning, >3 tool calls) ─
+  - model_name: cloud-orchestrator
+    litellm_params:
+      model: <<CLOUD_MODEL_ID>>         # e.g. anthropic/claude-opus-4-6
+      api_key: "os.environ/ANTHROPIC_API_KEY"
+      max_tokens: 8192
+      timeout: 120
+
+router_settings:
+  routing_strategy: least-busy      # serialises requests to single GPU slot
+  num_retries: 2
+  timeout: 30                       # fail fast; orchestrator re-routes on timeout
+  retry_after: 5
+
+# ── LiteLLM server settings ──────────────────────────────────────────────────
+litellm_settings:
+  drop_params: true                 # ignore unsupported params silently
+  set_verbose: false                # set true for debugging only
+
+# ── General settings ─────────────────────────────────────────────────────────
+general_settings:
+  master_key: "os.environ/LITELLM_MASTER_KEY"   # set in environment
+  # database_url: optional for logging / spend tracking

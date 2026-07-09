@@ -1,15 +1,25 @@
 {
   "name": "career-writer",
   "displayName": "Career Writer",
-  "version": "2.0.0",
-  "description": "Professional career documents with audience-aware framing, credential accuracy, and submission limit tracking.",
+  "version": "2.1.0",
+  "description": "Professional career documents with audience-aware framing.",
   "author": {
     "name": "Daniel Sobral Blanco"
   },
   "license": "MIT",
-  "keywords": ["career", "cv", "cover-letter", "resume", "applications"],
+  "keywords": [
+    "career",
+    "cv",
+    "cover-letter",
+    "resume",
+    "applications"
+  ],
   "category": "productivity",
-  "tags": ["career", "writing", "applications"],
+  "tags": [
+    "career",
+    "writing",
+    "applications"
+  ],
   "skills": "./skills/",
   "agents": "./agents/"
 }

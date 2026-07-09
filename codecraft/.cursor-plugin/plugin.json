@@ -1,15 +1,26 @@
 {
   "name": "codecraft",
   "displayName": "Codecraft",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "description": "End-to-end code quality: analyze conventions, write conformant code, review quality, and audit cognitive debt.",
   "author": {
     "name": "Daniel Sobral Blanco"
   },
   "license": "MIT",
-  "keywords": ["code-quality", "conventions", "review", "cognitive-debt", "refactoring"],
+  "keywords": [
+    "code-quality",
+    "conventions",
+    "review",
+    "cognitive-debt",
+    "refactoring"
+  ],
   "category": "developer-tools",
-  "tags": ["analysis", "style", "review", "debt"],
+  "tags": [
+    "analysis",
+    "style",
+    "review",
+    "debt"
+  ],
   "skills": "./skills/",
   "agents": "./agents/",
   "rules": "./rules/",

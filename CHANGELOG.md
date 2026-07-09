@@ -1,5 +1,20 @@
 # Changelog
 
+## 2.1.0 — 2026-07-09
+
+### Added
+
+- **Portable core** (`core/skills/`, `core/manifest.yaml`) as single source of truth
+- **skills-export** CLI — export/sync to Cursor, Claude Code, and Codex
+- **Adapters** (`adapters/cursor/`, `adapters/claude/`, `adapters/codex/`)
+- Platform-neutral skill bodies with `platform-paths.md` and `platform-orchestration.md`
+- `bin/skills-export` repo-local launcher
+
+### Changed
+
+- Root Cursor plugins are **generated** via `skills-export sync cursor`
+- Edit skills in `core/skills/` only; Cursor extensions in `adapters/cursor/`
+
 ## 2.0.0 — 2026-07-09
 
 ### Breaking

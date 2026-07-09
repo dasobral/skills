@@ -1,15 +1,24 @@
 {
   "name": "agent-platform",
   "displayName": "Agent Platform",
-  "version": "2.0.0",
-  "description": "Create agent definitions and orchestrate multi-agent pipelines with task graphs, parallelism, and artifact routing.",
+  "version": "2.1.0",
+  "description": "Create agent definitions and orchestrate multi-agent pipelines.",
   "author": {
     "name": "Daniel Sobral Blanco"
   },
   "license": "MIT",
-  "keywords": ["agents", "orchestration", "multi-agent", "task-graph"],
+  "keywords": [
+    "agents",
+    "orchestration",
+    "multi-agent",
+    "task-graph"
+  ],
   "category": "developer-tools",
-  "tags": ["agents", "orchestration", "workflow"],
+  "tags": [
+    "agents",
+    "orchestration",
+    "workflow"
+  ],
   "skills": "./skills/",
   "agents": "./agents/",
   "hooks": "./hooks/hooks.json"

@@ -1,0 +1,20 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "skills-export"
+version = "0.1.0"
+description = "Export portable agent skills to Cursor, Claude Code, and Codex"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+  "PyYAML>=6.0",
+]
+
+[project.scripts]
+skills-export = "skills_export.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["skills_export*"]
