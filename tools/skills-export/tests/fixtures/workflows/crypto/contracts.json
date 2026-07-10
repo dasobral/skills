@@ -1,0 +1,190 @@
+{
+  "cbom_before": {
+    "schema_version": "1.0",
+    "evidence_state": "pass",
+    "repository": {"identity": "example/service", "revision": "abc123"},
+    "assets": [
+      {
+        "asset_id": "tls-client",
+        "source_class": "configuration",
+        "location": "config/tls.json",
+        "algorithm": "RSA",
+        "parameters": {"bits": 2048},
+        "mode": "signature",
+        "protocol": "TLS 1.3",
+        "provider_boundary": "OpenSSL 3.2.1/default",
+        "key_purpose": "server-authentication",
+        "fallback": "none",
+        "owner": "edge-platform",
+        "confidence": "high",
+        "evidence_state": "pass",
+        "evidence_hash": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      }
+    ],
+    "runtime_observation": {"authorized": false, "collected": false, "evidence_state": "not-applicable"}
+  },
+  "cbom_after": {
+    "schema_version": "1.0",
+    "evidence_state": "pass",
+    "repository": {"identity": "example/service", "revision": "def456"},
+    "assets": [
+      {
+        "asset_id": "tls-client",
+        "source_class": "configuration",
+        "location": "config/tls.json",
+        "algorithm": "ECDSA",
+        "parameters": {"curve": "P-256"},
+        "mode": "signature",
+        "protocol": "TLS 1.3",
+        "provider_boundary": "OpenSSL 3.3.0/fips",
+        "key_purpose": "server-authentication",
+        "fallback": "RSA-2048",
+        "owner": "edge-platform",
+        "confidence": "high",
+        "evidence_state": "pass",
+        "evidence_hash": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      }
+    ],
+    "runtime_observation": {"authorized": false, "collected": false, "evidence_state": "not-applicable"}
+  },
+  "cbom_delta_expected": {
+    "schema_version": "1.0",
+    "before_revision": "abc123",
+    "after_revision": "def456",
+    "changes": [
+      {
+        "asset_id": "tls-client",
+        "change_type": "modified",
+        "fields": {
+          "algorithm": {"before": "RSA", "after": "ECDSA"},
+          "fallback": {"before": "none", "after": "RSA-2048"},
+          "evidence_hash": {
+            "before": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "after": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+          },
+          "parameters": {"before": {"bits": 2048}, "after": {"curve": "P-256"}},
+          "provider_boundary": {
+            "before": "OpenSSL 3.2.1/default",
+            "after": "OpenSSL 3.3.0/fips"
+          }
+        },
+        "confidence": "high",
+        "evidence_state": "pass",
+        "before_evidence_hash": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "after_evidence_hash": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      }
+    ]
+  },
+  "pqc_assets": {
+    "schema_version": "1.0",
+    "policy_revision": "NIST.IR.8547-IPD@2024-11-12",
+    "assets": [
+      {
+        "asset_id": "archival-signing",
+        "confidentiality_lifetime_years": 20,
+        "system_lifetime_years": 12,
+        "updateability": 1,
+        "exposure": 5,
+        "migration_lead_time_years": 6,
+        "dependencies": ["hsm", "document-verifier"]
+      },
+      {
+        "asset_id": "ephemeral-session",
+        "confidentiality_lifetime_years": 1,
+        "system_lifetime_years": 2,
+        "updateability": 5,
+        "exposure": 2,
+        "migration_lead_time_years": 1,
+        "dependencies": []
+      }
+    ]
+  },
+  "pqc_queue_expected": {
+    "schema_version": "1.0",
+    "policy_revision": "NIST.IR.8547-IPD@2024-11-12",
+    "ranking_method": "v1:cl+sl+exposure+lead+(6-updateability)+dependency-count",
+    "queue": [
+      {
+        "rank": 1,
+        "asset_id": "archival-signing",
+        "score": 50,
+        "evidence_state": "pass",
+        "factors": {
+          "confidentiality_lifetime_years": 20,
+          "system_lifetime_years": 12,
+          "updateability": 1,
+          "exposure": 5,
+          "migration_lead_time_years": 6,
+          "dependency_count": 2
+        },
+        "dependencies": ["document-verifier", "hsm"]
+      },
+      {
+        "rank": 2,
+        "asset_id": "ephemeral-session",
+        "score": 7,
+        "evidence_state": "pass",
+        "factors": {
+          "confidentiality_lifetime_years": 1,
+          "system_lifetime_years": 2,
+          "updateability": 5,
+          "exposure": 2,
+          "migration_lead_time_years": 1,
+          "dependency_count": 0
+        },
+        "dependencies": []
+      }
+    ]
+  },
+  "interoperability_input": {
+    "schema_version": "1.0",
+    "case_id": "mlkem768-tls13-negative-codepoint",
+    "evidence_state": "pass",
+    "implementations": [
+      {"name": "client-a", "version": "1.4.2"},
+      {"name": "server-b", "version": "7.1.0"}
+    ],
+    "protocol": "TLS",
+    "protocol_revision": "1.3",
+    "draft_revision": "final",
+    "codepoint_or_oid": "0x0201",
+    "expected_fallback": "X25519",
+    "negotiated_result": "X25519",
+    "sizes_bytes": {"client_hello": 1450, "server_hello": 220},
+    "latency_ms": 18.25,
+    "fragmentation": {"observed": true, "fragments": 2},
+    "negative_tests": [
+      {"name": "unsupported-codepoint", "result": "pass"}
+    ],
+    "reproduction_command": "python3 tests/interop.py --case mlkem768-tls13-negative-codepoint",
+    "evidence_hashes": [
+      "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+    ]
+  },
+  "interoperability_case_expected": {
+    "schema_version": "1.0",
+    "case_id": "mlkem768-tls13-negative-codepoint",
+    "evidence_state": "pass",
+    "implementations": [
+      {"name": "client-a", "version": "1.4.2"},
+      {"name": "server-b", "version": "7.1.0"}
+    ],
+    "protocol": "TLS",
+    "protocol_revision": "1.3",
+    "draft_revision": "final",
+    "codepoint_or_oid": "0x0201",
+    "expected_fallback": "X25519",
+    "negotiated_result": "X25519",
+    "sizes_bytes": {"client_hello": 1450, "server_hello": 220},
+    "latency_ms": 18.25,
+    "fragmentation": {"observed": true, "fragments": 2},
+    "negative_tests": [
+      {"name": "unsupported-codepoint", "result": "pass"}
+    ],
+    "reproduction_command": "python3 tests/interop.py --case mlkem768-tls13-negative-codepoint",
+    "evidence_hashes": [
+      "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+    ],
+    "record_hash": "sha256:fb113c0da81d7beae5e699203c383b9d3cbb78172596b6a79462ab6cf612ff12"
+  }
+}

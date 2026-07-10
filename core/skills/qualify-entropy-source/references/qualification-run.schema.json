@@ -1,0 +1,66 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Entropy qualification evidence run",
+  "type": "object",
+  "required": ["schema_version", "source_id", "source_identity_hash", "restart_matrix_identity", "estimator_versions", "estimator_invocations", "health_test_parameters", "claimed_min_entropy_bits_per_sample", "observed_min_entropy_bits_per_sample", "observations", "artifact_hashes", "evidence_state", "decision", "limitations"],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "source_id": {"type": "string"},
+    "source_identity_hash": {"type": "string", "pattern": "sha256:[0-9a-f]{64}"},
+    "restart_matrix_identity": {"type": "string"},
+    "estimator_versions": {"type": "array", "items": {"type": "string"}},
+    "estimator_invocations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name", "version", "argv", "input_hash", "output_hash", "exit_code"],
+        "properties": {
+          "name": {"type": "string"},
+          "version": {"type": "string"},
+          "argv": {"type": "array", "items": {"type": "string"}},
+          "input_hash": {"type": "string", "pattern": "sha256:[0-9a-f]{64}"},
+          "output_hash": {"type": "string", "pattern": "sha256:[0-9a-f]{64}"},
+          "exit_code": {"type": "integer"}
+        },
+        "additionalProperties": false
+      }
+    },
+    "health_test_parameters": {
+      "type": "object",
+      "required": ["formula_version", "alphabet_size", "claimed_min_entropy_bits_per_sample", "repetition_count_cutoff", "adaptive_proportion_window", "adaptive_proportion_cutoff", "alpha"],
+      "properties": {
+        "formula_version": {"const": "NIST.SP.800-90B@2018:4.4.1-4.4.2/v1"},
+        "alphabet_size": {"type": "integer", "minimum": 2},
+        "claimed_min_entropy_bits_per_sample": {"type": "number", "exclusiveMinimum": 0},
+        "repetition_count_cutoff": {"type": "integer", "minimum": 1},
+        "adaptive_proportion_window": {"type": "integer", "minimum": 1},
+        "adaptive_proportion_cutoff": {"type": "integer", "minimum": 1},
+        "alpha": {"type": "number", "exclusiveMinimum": 0, "exclusiveMaximum": 1}
+      },
+      "allOf": [
+        {
+          "if": {"properties": {"alphabet_size": {"const": 2}}},
+          "then": {"properties": {"adaptive_proportion_window": {"const": 1024}}},
+          "else": {"properties": {"adaptive_proportion_window": {"const": 512}}}
+        }
+      ],
+      "additionalProperties": false
+    },
+    "claimed_min_entropy_bits_per_sample": {"type": "number", "minimum": 0},
+    "observed_min_entropy_bits_per_sample": {"type": "number", "minimum": 0},
+    "observations": {
+      "type": "object",
+      "required": ["restart_test", "health_tests"],
+      "properties": {
+        "restart_test": {"enum": ["pass", "fail", "unknown", "not-applicable", "evidence-gap"]},
+        "health_tests": {"enum": ["pass", "fail", "unknown", "not-applicable", "evidence-gap"]}
+      },
+      "additionalProperties": false
+    },
+    "artifact_hashes": {"type": "array", "items": {"type": "string", "pattern": "sha256:[0-9a-f]{64}"}},
+    "evidence_state": {"enum": ["pass", "fail", "unknown", "not-applicable", "evidence-gap"]},
+    "decision": {"enum": ["review-required", "no-further-action"]},
+    "limitations": {"type": "array", "items": {"type": "string"}}
+  },
+  "additionalProperties": false
+}

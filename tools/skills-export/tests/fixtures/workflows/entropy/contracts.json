@@ -1,0 +1,140 @@
+{
+  "qualification_input": {
+    "schema_version": "1.0",
+    "source_identity": {
+      "source_id": "qrng-board-7",
+      "source_physics": "shot-noise photodetection",
+      "adversarial_assumptions": [
+        "attacker may control ambient temperature within the stated envelope"
+      ],
+      "raw_sampling_point": "ADC output before conditioning",
+      "digitization": "12-bit ADC at 20 MS/s",
+      "conditioning": "SHA-256 vetted conditioning component",
+      "hardware_identity": "board-rev-C serial-redacted",
+      "firmware_identity": "fw-2.3.1 sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+      "driver_identity": "qrng-driver-1.8.0",
+      "sampling_rate_hz": 20000000,
+      "alphabet_size": 2,
+      "claimed_min_entropy_bits_per_sample": 0.73,
+      "operating_envelope": {
+        "temperature_c": {"minimum": 10, "maximum": 45},
+        "voltage_v": {"minimum": 4.8, "maximum": 5.2}
+      }
+    },
+    "restart_matrix_identity": "restart-matrix-v3",
+    "estimator_versions": ["ea_non_iid.py@NIST-90B-2021-05-17"],
+    "estimator_invocations": [
+      {
+        "name": "ea_non_iid.py",
+        "version": "NIST-90B-2021-05-17",
+        "argv": ["python3", "ea_non_iid.py", "-i", "samples.bin"],
+        "input_hash": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+        "output_hash": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+        "exit_code": 0
+      }
+    ],
+    "health_test_parameters": {
+      "formula_version": "NIST.SP.800-90B@2018:4.4.1-4.4.2/v1",
+      "alphabet_size": 2,
+      "claimed_min_entropy_bits_per_sample": 0.73,
+      "repetition_count_cutoff": 29,
+      "adaptive_proportion_window": 1024,
+      "adaptive_proportion_cutoff": 692,
+      "alpha": 0.000001
+    },
+    "artifact_hashes": [
+      "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+      "sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+    ],
+    "observations": {
+      "restart_test": "pass",
+      "health_tests": "pass",
+      "estimator_min_entropy_bits_per_sample": 0.71
+    }
+  },
+  "qualification_run_expected": {
+    "schema_version": "1.0",
+    "source_id": "qrng-board-7",
+    "source_identity_hash": "sha256:dc999eb6873929ae2897ef4c3a3ea60122490d9685aeaece96b82421c73f7d18",
+    "restart_matrix_identity": "restart-matrix-v3",
+    "estimator_versions": ["ea_non_iid.py@NIST-90B-2021-05-17"],
+    "estimator_invocations": [
+      {
+        "name": "ea_non_iid.py",
+        "version": "NIST-90B-2021-05-17",
+        "argv": ["python3", "ea_non_iid.py", "-i", "samples.bin"],
+        "input_hash": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+        "output_hash": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+        "exit_code": 0
+      }
+    ],
+    "health_test_parameters": {
+      "formula_version": "NIST.SP.800-90B@2018:4.4.1-4.4.2/v1",
+      "alphabet_size": 2,
+      "claimed_min_entropy_bits_per_sample": 0.73,
+      "repetition_count_cutoff": 29,
+      "adaptive_proportion_window": 1024,
+      "adaptive_proportion_cutoff": 692,
+      "alpha": 0.000001
+    },
+    "claimed_min_entropy_bits_per_sample": 0.73,
+    "observed_min_entropy_bits_per_sample": 0.71,
+    "observations": {
+      "restart_test": "pass",
+      "health_tests": "pass"
+    },
+    "artifact_hashes": [
+      "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+      "sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+    ],
+    "evidence_state": "fail",
+    "decision": "review-required",
+    "limitations": [
+      "This evidence record does not certify entropy adequacy, quantum origin, or FIPS status."
+    ]
+  },
+  "prior_source": {
+    "source_id": "qrng-board-7",
+    "source_physics": "shot-noise photodetection",
+    "raw_sampling_point": "ADC output before conditioning",
+    "digitization": "12-bit ADC at 20 MS/s",
+    "conditioning": "SHA-256 vetted conditioning component",
+    "hardware_identity": "board-rev-C serial-redacted",
+    "firmware_identity": "fw-2.3.1 sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+    "driver_identity": "qrng-driver-1.8.0",
+    "sampling_rate_hz": 20000000,
+    "operating_envelope": {
+      "temperature_c": {"minimum": 10, "maximum": 45},
+      "voltage_v": {"minimum": 4.8, "maximum": 5.2}
+    }
+  },
+  "changed_source": {
+    "source_id": "qrng-board-7",
+    "source_physics": "shot-noise photodetection",
+    "raw_sampling_point": "ADC output before conditioning",
+    "digitization": "12-bit ADC at 20 MS/s",
+    "conditioning": "SHA-256 vetted conditioning component",
+    "hardware_identity": "board-rev-C serial-redacted",
+    "firmware_identity": "fw-2.4.0 sha256:9999999999999999999999999999999999999999999999999999999999999999",
+    "driver_identity": "qrng-driver-1.8.0",
+    "sampling_rate_hz": 20000000,
+    "operating_envelope": {
+      "temperature_c": {"minimum": 10, "maximum": 45},
+      "voltage_v": {"minimum": 4.8, "maximum": 5.2}
+    }
+  },
+  "requalification_decision_expected": {
+    "schema_version": "1.0",
+    "source_id": "qrng-board-7",
+    "evidence_state": "pass",
+    "decision": "requalification-required",
+    "changed_fields": ["firmware_identity"],
+    "reasons": [
+      "firmware_identity changed and no explicit version-pinned exception policy was supplied"
+    ],
+    "policy_revision": null,
+    "limitations": [
+      "This workflow records a change-control decision; it does not certify entropy adequacy, quantum origin, or FIPS status."
+    ]
+  }
+}
