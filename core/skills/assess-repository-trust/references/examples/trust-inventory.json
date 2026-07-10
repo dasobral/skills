@@ -1,0 +1,45 @@
+{
+  "capability_delta": {
+    "added": [],
+    "changed": [],
+    "removed": []
+  },
+  "decision": {
+    "approver": {
+      "id": null
+    },
+    "binding_hash": "sha256:0c36484b5d4793abc6b23c7b09667a2a7e65d2ffffd85e6760d846aa169a8a7f",
+    "policy": {
+      "id": null,
+      "version": null
+    },
+    "provenance": "unapproved-request",
+    "value": "review-required"
+  },
+  "evidence_state": "pass",
+  "items": [
+    {
+      "content_hash": "sha256:0d0a2f4faca8b98ba31d36c7d00f0f6f43ba5da77f2303d332d30170801a5642",
+      "evidence_state": "pass",
+      "path": "AGENTS.md",
+      "requested_capability": "influence-agent-behavior",
+      "source_class": "agent-instruction"
+    }
+  ],
+  "prior_approved_snapshot_hash": null,
+  "repository": {
+    "dirty_state_hash": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+    "identity": "sha256:8ca25e74ea99b48de173a80b47f1b471c36f59f5f6e31d1e1fffa2b30c2a6291",
+    "identity_evidence_state": "pass",
+    "identity_source": "repository-id-file",
+    "name": "example-repository",
+    "revision": "unversioned"
+  },
+  "request": {
+    "parameters": [],
+    "requested_capabilities": [
+      "influence-agent-behavior"
+    ]
+  },
+  "schema_version": "2.0"
+}
