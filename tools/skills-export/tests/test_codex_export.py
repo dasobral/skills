@@ -483,6 +483,40 @@ def test_codex_adapter_readme_documents_native_plugin_architecture() -> None:
     assert ".agents/instructions.md" not in readme
 
 
+def test_each_codex_adapter_authors_complete_operational_readme(
+    repo_copy: Path,
+) -> None:
+    manifest = yaml.safe_load(
+        (repo_copy / "core" / "manifest.yaml").read_text(encoding="utf-8")
+    )
+    required_sections = (
+        "## Daily workflow",
+        "## Triggers",
+        "## Required inputs",
+        "## Artifacts",
+        "## Agent authority",
+        "## Deterministic checks and agent decisions",
+        "## Data guarantees",
+        "## Limitations and non-claims",
+    )
+
+    for plugin_name, metadata in manifest["plugins"].items():
+        authored = repo_copy / "adapters" / "codex" / plugin_name / "README.md"
+        assert authored.is_file(), plugin_name
+        text = authored.read_text(encoding="utf-8")
+        for section in required_sections:
+            assert section in text, (plugin_name, section)
+        for skill_name in metadata["skills"]:
+            assert f"`{skill_name}`" in text, (plugin_name, skill_name)
+
+        generated = export_codex_plugin(
+            repo_copy,
+            plugin_name,
+            repo_copy / "plugins" / "codex",
+        )
+        assert (generated / "README.md").read_bytes() == authored.read_bytes()
+
+
 def test_create_agent_skill_is_platform_aware() -> None:
     root = Path(__file__).parents[3]
     skill = (root / "core" / "skills" / "create-agent" / "SKILL.md").read_text(
@@ -604,6 +638,7 @@ def test_export_all_plugins_and_marketplace(repo_copy: Path) -> None:
         (repo_copy / "core" / "manifest.yaml").read_text(encoding="utf-8")
     )
     names = list(manifest["plugins"])
+    assert len(names) == 11
     for name in names:
         _write_codex_overlay(repo_copy, name)
 
@@ -686,24 +721,45 @@ def test_codex_export_rejects_no_artifact_request(repo_copy: Path) -> None:
         export_codex(repo_copy, flat=False, native=False)
 
 
-@pytest.mark.parametrize("flag", ["--no-flat", "--no-bundles"])
-def test_codex_cli_rejects_legacy_or_empty_modes(
-    repo_copy: Path, flag: str
-) -> None:
+def test_codex_cli_no_flat_skips_codex_artifact(repo_copy: Path) -> None:
     from skills_export.cli import main
 
-    with pytest.raises(SystemExit) as exc:
-        main(
-            [
-                "--root",
-                str(repo_copy),
-                "export",
-                "codex",
-                flag,
-            ]
-        )
+    assert main(
+        [
+            "--root",
+            str(repo_copy),
+            "export",
+            "codex",
+            "--no-flat",
+        ]
+    ) == 0
 
-    assert exc.value.code == 2
+    assert not (repo_copy / "dist" / "codex").exists()
+
+
+def test_codex_cli_no_bundles_keeps_flat_export(repo_copy: Path) -> None:
+    from skills_export.cli import main
+
+    assert main(
+        [
+            "--root",
+            str(repo_copy),
+            "export",
+            "codex",
+            "--no-bundles",
+            "--plugin",
+            "career-writer",
+        ]
+    ) == 0
+
+    assert (
+        repo_copy
+        / "dist"
+        / "codex"
+        / "skills"
+        / "career-documents"
+        / "SKILL.md"
+    ).is_file()
 
 
 def test_overlay_cannot_relocate_generated_components(repo_copy: Path) -> None:

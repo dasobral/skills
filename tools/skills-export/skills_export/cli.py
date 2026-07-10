@@ -6,12 +6,19 @@ from pathlib import Path
 
 from . import __version__
 from .exporters.claude import export_claude
-from .exporters.codex import export_codex
+from .exporters.codex import export_codex, export_codex_plugins
 from .exporters.cursor import export_cursor
 from .ingest import ingest_landing, write_ingest_report
 from .maintain import maintain
-from .manifest import load_manifest, repo_root
+from .manifest import (
+    codex_plugins_dir,
+    load_manifest,
+    platform_plugin_names,
+    repo_root,
+)
 from .validate import validate_core
+from .validate_codex import validate_codex_plugins
+from .validate_cursor import validate_cursor_plugins
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -32,16 +39,25 @@ def main(argv: list[str] | None = None) -> int:
 
     sub = parser.add_subparsers(dest="command", required=True)
 
-    sub.add_parser("validate", help="Validate core skills against manifest")
+    p_validate = sub.add_parser(
+        "validate",
+        help="Validate core skills and generated platform output",
+    )
+    p_validate.add_argument(
+        "target",
+        nargs="?",
+        choices=["cursor", "codex"],
+        help="Validate one generated platform (default: core and existing output)",
+    )
 
     p_sync = sub.add_parser(
         "sync",
-        help="Regenerate plugins/cursor/ from core + adapters",
+        help="Regenerate committed native plugins from core + adapters",
     )
     p_sync.add_argument(
         "target",
-        choices=["cursor"],
-        help="Sync target (currently cursor only)",
+        choices=["cursor", "codex"],
+        help="Sync target",
     )
     p_sync.add_argument(
         "--plugin",
@@ -112,25 +128,43 @@ def main(argv: list[str] | None = None) -> int:
 
     args = parser.parse_args(argv)
     root = (args.root or repo_root()).resolve()
-    if args.command == "export" and args.target in ("codex", "all"):
-        if args.no_flat:
-            parser.error(
-                "Codex export only produces flat skills; --no-flat would "
-                "produce no Codex artifact"
-            )
-        if args.no_bundles:
-            parser.error(
-                "Codex legacy bundles were removed; --no-bundles is not a "
-                "Codex export mode"
-            )
 
     if args.command == "validate":
-        errors = validate_core(root)
-        if errors:
+        core_errors = [] if args.target in ("cursor", "codex") else validate_core(root)
+        cursor_issues = []
+        codex_issues = []
+        cursor_exists = (
+            (root / "plugins" / "cursor").exists()
+            or (root / ".cursor-plugin" / "marketplace.json").exists()
+        )
+        codex_exists = (
+            (root / "plugins" / "codex").exists()
+            or (root / ".agents" / "plugins" / "marketplace.json").exists()
+        )
+        if args.target == "cursor" or (args.target is None and cursor_exists):
+            cursor_issues = validate_cursor_plugins(root)
+        if args.target == "codex" or (args.target is None and codex_exists):
+            codex_issues = validate_codex_plugins(root)
+        if core_errors or cursor_issues or codex_issues:
             print("Validation failed:", file=sys.stderr)
-            for err in errors:
+            for err in core_errors:
                 print(f"  - {err}", file=sys.stderr)
+            for issue in [*cursor_issues, *codex_issues]:
+                print(f"  - {issue.path}: {issue.message}", file=sys.stderr)
             return 1
+        if args.target in ("cursor", "codex"):
+            manifest = load_manifest(root)
+            platform = args.target.capitalize()
+            count = (
+                len(platform_plugin_names(manifest, "cursor"))
+                if args.target == "cursor"
+                else len(manifest["plugins"])
+            )
+            print(
+                f"{platform} validation OK: "
+                f"{count} generated plugin(s)"
+            )
+            return 0
         manifest = load_manifest(root)
         n_plugins = len(manifest["plugins"])
         n_skills = len({s for p in manifest["plugins"].values() for s in p["skills"]})
@@ -164,6 +198,12 @@ def main(argv: list[str] | None = None) -> int:
             for p in paths:
                 print(f"synced {p.relative_to(root)}")
             print(f"Synced {len(paths)} Cursor plugin(s) to plugins/cursor/")
+        else:
+            out = codex_plugins_dir(root)
+            paths = export_codex_plugins(root, out, plugins=args.plugins)
+            for path in paths:
+                print(f"synced {path.relative_to(root)}")
+            print(f"Synced {len(paths)} Codex plugin(s) to plugins/codex/")
         return 0
 
     if args.command == "export":
@@ -187,12 +227,13 @@ def main(argv: list[str] | None = None) -> int:
                     flat=not args.no_flat,
                     bundles=not args.no_bundles,
                 )
+            elif args.no_flat:
+                paths = []
             else:
                 paths = export_codex(
                     root,
                     out,
                     plugins=args.plugins,
-                    flat=not args.no_flat,
                 )
             print(f"exported {target} -> {out} ({len(paths)} artifact(s))")
         return 0
@@ -219,13 +260,16 @@ def main(argv: list[str] | None = None) -> int:
             root,
             dry_run=args.dry_run,
             skip_ingest=getattr(args, "skip_ingest", False),
-            skip_export=False,
+            skip_export=getattr(args, "skip_export", False),
             plugins=getattr(args, "plugins", None),
         )
         if result.ingest_skills:
             print(f"ingested: {', '.join(result.ingest_skills)}")
         for platform, path in result.exports.items():
-            print(f"exported {platform} -> {path}")
+            verb = "would export" if result.dry_run else "exported"
+            count = result.export_counts.get(platform)
+            cardinality = f" ({count} plugins)" if count is not None else ""
+            print(f"{verb} {platform}{cardinality} -> {path}")
         errors = result.ingest_errors + result.validate_errors
         if errors:
             for err in errors:

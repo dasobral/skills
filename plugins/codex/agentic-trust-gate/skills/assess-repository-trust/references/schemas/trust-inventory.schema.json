@@ -1,0 +1,112 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/agent-security/trust-inventory.schema.json",
+  "title": "Parameter-bound repository trust decision",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "repository",
+    "items",
+    "prior_approved_snapshot_hash",
+    "capability_delta",
+    "request",
+    "evidence_state",
+    "decision"
+  ],
+  "properties": {
+    "schema_version": {"const": "2.0"},
+    "repository": {
+      "type": "object",
+      "required": ["identity", "identity_source", "identity_evidence_state", "name", "revision", "dirty_state_hash"],
+      "properties": {
+        "identity": {"$ref": "#/$defs/hash"},
+        "identity_source": {"enum": ["repository-id-file", "git-origin", "local-name-fallback"]},
+        "identity_evidence_state": {"$ref": "#/$defs/evidence_state"},
+        "name": {"type": "string", "minLength": 1},
+        "revision": {"type": "string", "minLength": 1},
+        "dirty_state_hash": {"$ref": "#/$defs/hash"}
+      },
+      "additionalProperties": false
+    },
+    "items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["source_class", "path", "requested_capability", "content_hash", "evidence_state"],
+        "properties": {
+          "source_class": {
+            "enum": [
+              "agent-instruction",
+              "hook",
+              "skill",
+              "mcp-config",
+              "lifecycle-script",
+              "editor-task",
+              "devcontainer",
+              "symlink",
+              "executable"
+            ]
+          },
+          "path": {"type": "string"},
+          "requested_capability": {"type": "string"},
+          "content_hash": {"$ref": "#/$defs/hash"},
+          "evidence_state": {"$ref": "#/$defs/evidence_state"}
+        },
+        "additionalProperties": false
+      }
+    },
+    "prior_approved_snapshot_hash": {
+      "oneOf": [{"$ref": "#/$defs/hash"}, {"type": "null"}]
+    },
+    "capability_delta": {
+      "type": "object",
+      "required": ["added", "removed", "changed"],
+      "properties": {
+        "added": {"type": "array", "items": {"type": "object"}},
+        "removed": {"type": "array", "items": {"type": "object"}},
+        "changed": {"type": "array", "items": {"type": "object"}}
+      },
+      "additionalProperties": false
+    },
+    "request": {
+      "type": "object",
+      "required": ["requested_capabilities", "parameters"],
+      "properties": {
+        "requested_capabilities": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+        "parameters": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["name", "value_hash"],
+            "properties": {
+              "name": {"type": "string"},
+              "value_hash": {"$ref": "#/$defs/hash"}
+            },
+            "additionalProperties": false
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "evidence_state": {"$ref": "#/$defs/evidence_state"},
+    "decision": {
+      "type": "object",
+      "required": ["value", "binding_hash", "policy", "approver", "provenance"],
+      "properties": {
+        "value": {"enum": ["allow", "deny", "review-required"]},
+        "binding_hash": {"$ref": "#/$defs/hash"},
+        "policy": {"type": "object"},
+        "approver": {"type": "object"},
+        "provenance": {"type": "string"}
+      },
+      "additionalProperties": false
+    }
+  },
+  "$defs": {
+    "hash": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"},
+    "evidence_state": {
+      "enum": ["pass", "fail", "unknown", "not-applicable", "evidence-gap"]
+    }
+  },
+  "additionalProperties": false
+}

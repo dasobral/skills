@@ -1,0 +1,58 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/agent-security/executor-envelope.schema.json",
+  "title": "Mediated isolated executor RPC envelope",
+  "oneOf": [
+    {
+      "type": "object",
+      "required": ["type", "protocol", "role", "trial_id", "scenario_hash", "role_definition_hash", "role_input", "input_manifest_digest", "monitor_context"],
+      "properties": {
+        "type": {"const": "start"},
+        "protocol": {"const": "agent-executor-rpc-v1"},
+        "role": {"enum": ["attacker", "victim", "judge"]},
+        "trial_id": {"type": "string"},
+        "scenario_hash": {"$ref": "#/$defs/hash"},
+        "role_definition_hash": {"$ref": "#/$defs/hash"},
+        "role_input": {"type": "object"},
+        "input_manifest_digest": {"$ref": "#/$defs/hash"},
+        "monitor_context": {"type": ["object", "null"]}
+      },
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "required": ["type", "request_id", "tool", "arguments"],
+      "properties": {
+        "type": {"const": "tool_request"},
+        "request_id": {"type": "string", "minLength": 1},
+        "tool": {"type": "string", "minLength": 1},
+        "arguments": {"type": "object"}
+      },
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "required": ["type", "request_id", "result_hash", "observation_hash", "allowed"],
+      "properties": {
+        "type": {"const": "tool_response"},
+        "request_id": {"type": "string", "minLength": 1},
+        "result_hash": {"$ref": "#/$defs/hash"},
+        "observation_hash": {"$ref": "#/$defs/hash"},
+        "allowed": {"type": "boolean"}
+      },
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "required": ["type", "role"],
+      "properties": {
+        "type": {"const": "complete"},
+        "role": {"enum": ["attacker", "victim", "judge"]}
+      },
+      "additionalProperties": false
+    }
+  ],
+  "$defs": {
+    "hash": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"}
+  }
+}

@@ -361,10 +361,14 @@ def export_codex_plugin(
         plugin_meta["_has_hooks"] = True
     plugin_json = _assemble_plugin_json(plugin_name, plugin_meta, overlay)
     _write_json(plugin_out / ".codex-plugin" / "plugin.json", plugin_json)
-    (plugin_out / "README.md").write_text(
-        _generated_readme(plugin_name, plugin_meta, plugin_out),
-        encoding="utf-8",
-    )
+    authored_readme = adapter / "README.md"
+    if authored_readme.is_file():
+        shutil.copy2(authored_readme, plugin_out / "README.md")
+    else:
+        (plugin_out / "README.md").write_text(
+            _generated_readme(plugin_name, plugin_meta, plugin_out),
+            encoding="utf-8",
+        )
     return plugin_out
 
 
@@ -469,13 +473,26 @@ def export_codex_plugins(
     return results
 
 
-def export_codex_flat(root: Path, output_dir: Path, *, clean: bool = True) -> Path:
+def export_codex_flat(
+    root: Path,
+    output_dir: Path,
+    *,
+    plugins: list[str] | None = None,
+    clean: bool = True,
+) -> Path:
     _validate_repository_root(root)
     manifest = load_manifest(root)
     skills_root = root / "core" / "skills"
+    plugin_names = plugins or list(manifest["plugins"])
+    for plugin_name in plugin_names:
+        if not isinstance(plugin_name, str) or not NAME_RE.fullmatch(plugin_name):
+            raise ValueError(f"Invalid Codex plugin name: {plugin_name!r}")
+        if plugin_name not in manifest["plugins"]:
+            raise KeyError(f"Unknown plugin: {plugin_name}")
     seen: set[str] = set()
     skill_names: list[str] = []
-    for plugin in manifest["plugins"].values():
+    for plugin_name in plugin_names:
+        plugin = manifest["plugins"][plugin_name]
         for skill in plugin["skills"]:
             if not isinstance(skill, str) or not NAME_RE.fullmatch(skill):
                 raise ValueError(f"Invalid core skill name: {skill!r}")
@@ -555,7 +572,13 @@ def export_codex(
     results: list[Path] = []
 
     if flat:
-        results.append(export_codex_flat(root, flat_output_dir))
+        results.append(
+            export_codex_flat(
+                root,
+                flat_output_dir,
+                plugins=plugins,
+            )
+        )
 
     refs_out = flat_output_dir / "references"
     refs_src = root / "core" / "references"

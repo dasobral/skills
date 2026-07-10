@@ -1,0 +1,66 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Cryptographic interoperability case",
+  "type": "object",
+  "required": ["schema_version", "case_id", "evidence_state", "implementations", "protocol", "protocol_revision", "draft_revision", "codepoint_or_oid", "expected_fallback", "negotiated_result", "sizes_bytes", "latency_ms", "fragmentation", "negative_tests", "reproduction_command", "evidence_hashes", "record_hash"],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "case_id": {"type": "string"},
+    "evidence_state": {"enum": ["pass", "fail", "unknown", "not-applicable", "evidence-gap"]},
+    "implementations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name", "version"],
+        "properties": {
+          "name": {"type": "string"},
+          "version": {"type": "string"}
+        },
+        "additionalProperties": false
+      }
+    },
+    "protocol": {"type": "string"},
+    "protocol_revision": {"type": "string"},
+    "draft_revision": {"type": "string"},
+    "codepoint_or_oid": {"type": "string"},
+    "expected_fallback": {"type": "string"},
+    "negotiated_result": {"type": "string"},
+    "sizes_bytes": {
+      "type": "object",
+      "properties": {
+        "client_hello": {"type": "integer", "minimum": 0},
+        "server_hello": {"type": "integer", "minimum": 0},
+        "public_key": {"type": "integer", "minimum": 0},
+        "ciphertext": {"type": "integer", "minimum": 0},
+        "signature": {"type": "integer", "minimum": 0}
+      },
+      "additionalProperties": false
+    },
+    "latency_ms": {"type": "number", "minimum": 0},
+    "fragmentation": {
+      "type": "object",
+      "required": ["observed", "fragments"],
+      "properties": {
+        "observed": {"type": "boolean"},
+        "fragments": {"type": "integer", "minimum": 0}
+      },
+      "additionalProperties": false
+    },
+    "negative_tests": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name", "result"],
+        "properties": {
+          "name": {"type": "string"},
+          "result": {"enum": ["pass", "fail", "unknown", "not-applicable", "evidence-gap"]}
+        },
+        "additionalProperties": false
+      }
+    },
+    "reproduction_command": {"type": "string"},
+    "evidence_hashes": {"type": "array", "items": {"type": "string", "pattern": "sha256:[0-9a-f]{64}"}},
+    "record_hash": {"type": "string", "pattern": "sha256:[0-9a-f]{64}"}
+  },
+  "additionalProperties": false
+}

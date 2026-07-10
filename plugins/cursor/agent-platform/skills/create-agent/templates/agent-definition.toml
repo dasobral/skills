@@ -1,0 +1,31 @@
+name = "{{AGENT_NAME}}"
+description = "{{DESCRIPTION}}"
+developer_instructions = """
+## Role
+
+{{ROLE}}
+
+## Inputs
+
+{{INPUTS}}
+
+## Process
+
+{{PROCESS}}
+
+## Output Contract
+
+Choose exactly one output type from: `json_object`, `markdown_document`, `file_write`, `inline_text`, or `tool_call_sequence`.
+
+Output type: `{{OUTPUT_TYPE}}`
+
+{{OUTPUT_CONTRACT}}
+
+## Constraints
+
+{{CONSTRAINTS}}
+
+## Integration Hooks
+
+{{INTEGRATION}}
+"""

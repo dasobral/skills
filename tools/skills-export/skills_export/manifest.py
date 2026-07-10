@@ -53,6 +53,17 @@ def plugin_skill_names(manifest: dict[str, Any], plugin: str) -> list[str]:
     return list(plugins[plugin]["skills"])
 
 
+def platform_plugin_names(
+    manifest: dict[str, Any],
+    platform: str,
+) -> list[str]:
+    return [
+        name
+        for name, metadata in manifest["plugins"].items()
+        if platform in metadata
+    ]
+
+
 def all_skill_names(manifest: dict[str, Any]) -> list[str]:
     names: list[str] = []
     for plugin in manifest["plugins"].values():

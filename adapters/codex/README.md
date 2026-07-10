@@ -13,6 +13,8 @@ An adapter may provide:
 - `agents/*.toml` — optional project/user agent templates;
 - `hooks/hooks.json` and `hooks/scripts/` — optional native Codex lifecycle
   hooks using `${PLUGIN_ROOT}`;
+- `README.md` — operational workflow, inputs, artifacts, authority, guarantees,
+  and limitations copied into generated output;
 - `skills/` and safe assets — Codex-only additions.
 
 Agent templates are bundled but are not installed automatically. Plugins with
@@ -27,7 +29,8 @@ Each generated `plugins/codex/<plugin>/` contains:
 - `skills/<skill>/`;
 - optional `agents/*.toml`;
 - optional `hooks/hooks.json` and bundled scripts;
-- a generated `README.md`.
+- the adapter-authored `README.md` (with a generated fallback for incomplete
+  third-party overlays).
 
 The native marketplace is generated at `.agents/plugins/marketplace.json`.
 Flat skill export remains a separate compatibility artifact at

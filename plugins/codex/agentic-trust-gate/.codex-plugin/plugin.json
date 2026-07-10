@@ -1,0 +1,20 @@
+{
+  "name": "agentic-trust-gate",
+  "version": "0.1.0",
+  "description": "Assess repository control-plane trust and review MCP capability drift.",
+  "author": {
+    "name": "Daniel Sobral Blanco"
+  },
+  "license": "MIT",
+  "keywords": [
+    "agent-security",
+    "repository-trust",
+    "mcp",
+    "supply-chain"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Agentic Trust Gate"
+  },
+  "hooks": "./hooks/hooks.json"
+}
