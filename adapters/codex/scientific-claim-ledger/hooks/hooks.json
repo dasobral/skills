@@ -1,0 +1,17 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "^(Bash|Write|Edit|apply_patch)$",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 ${PLUGIN_ROOT}/hooks/scripts/objective_science_gate.py",
+            "timeout": 5,
+            "statusMessage": "Validating changed scientific evidence"
+          }
+        ]
+      }
+    ]
+  }
+}

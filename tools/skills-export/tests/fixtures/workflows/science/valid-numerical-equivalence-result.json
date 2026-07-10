@@ -1,0 +1,9 @@
+{
+  "reference_run_id": "run-reference",
+  "candidate_run_id": "run-candidate",
+  "metric": "maximum absolute error",
+  "observed": 0.04,
+  "absolute_tolerance": 0.1,
+  "relative_tolerance": 0.001,
+  "evidence_state": "pass"
+}

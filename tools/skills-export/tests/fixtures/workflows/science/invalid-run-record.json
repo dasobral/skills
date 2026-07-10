@@ -1,0 +1,72 @@
+{
+  "run_id": "run-invalid",
+  "context_of_use": "Objective validator fixture.",
+  "quantity_of_interest": "temperature",
+  "unit_registry": {
+    "quantities": [
+      {
+        "name": "temperature",
+        "unit": "",
+        "dimension": "thermodynamic-temperature",
+        "coordinate_frame": "laboratory"
+      }
+    ]
+  },
+  "coordinate_frame": "laboratory",
+  "tolerances": {"absolute": 0.1, "relative": 0.001},
+  "uncertainty": {
+    "state": "evidence-gap",
+    "value": null,
+    "reason": "Uncertainty statement unavailable."
+  },
+  "acceptance_threshold": {"operator": "<=", "value": 420.0, "unit": "K"},
+  "input_hashes": {
+    "mesh": {
+      "state": "pass",
+      "value": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "reason": "Input was readable."
+    }
+  },
+  "artifacts": {},
+  "environment": {
+    "state": "pass",
+    "value": {"os": "linux"},
+    "reason": "Captured."
+  },
+  "compiler_settings": {
+    "state": "evidence-gap",
+    "value": null,
+    "reason": "Compiler unavailable."
+  },
+  "runtime_settings": {
+    "state": "pass",
+    "value": {"runtime": "python-3.12"},
+    "reason": "Captured."
+  },
+  "hardware": {
+    "state": "pass",
+    "value": {"cpu": "example"},
+    "reason": "Captured."
+  },
+  "parallel_layout": {
+    "state": "pass",
+    "value": {"processes": 1},
+    "reason": "Captured."
+  },
+  "seeds": {
+    "state": "pass",
+    "value": [1],
+    "reason": "Provided."
+  },
+  "replay_command": {
+    "state": "pass",
+    "value": {
+      "argv": ["python3", "run.py"],
+      "executable_hash": null,
+      "redacted_arguments": []
+    },
+    "reason": "Provided."
+  },
+  "reproducibility_class": "numerically-equivalent",
+  "results": {"temperature": "NaN"}
+}

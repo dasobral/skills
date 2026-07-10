@@ -1,0 +1,86 @@
+{
+  "graph_id": "graph-001",
+  "claim": {
+    "claim_id": "claim-peak-temperature",
+    "statement": "Peak plate temperature remains below 420 K.",
+    "context_of_use": "Qualified load case only.",
+    "quantity_of_interest": "peak plate temperature"
+  },
+  "runs": [
+    {
+      "run_id": "run-sha256:1111111111111111111111111111111111111111111111111111111111111111",
+      "run_record_path": "runs/edge-code.json",
+      "run_record_hash": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    },
+    {
+      "run_id": "run-sha256:2222222222222222222222222222222222222222222222222222222222222222",
+      "run_record_path": "runs/edge-solution.json",
+      "run_record_hash": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+    },
+    {
+      "run_id": "run-sha256:3333333333333333333333333333333333333333333333333333333333333333",
+      "run_record_path": "runs/edge-validation.json",
+      "run_record_hash": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+    },
+    {
+      "run_id": "run-sha256:4444444444444444444444444444444444444444444444444444444444444444",
+      "run_record_path": "runs/edge-uq.json",
+      "run_record_hash": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+    }
+  ],
+  "edges": [
+    {
+      "edge_id": "edge-code",
+      "assurance_activity": "code-verification",
+      "test_id": "test-manufactured-solution",
+      "run_id": "run-sha256:1111111111111111111111111111111111111111111111111111111111111111",
+      "artifact_path": "artifacts/edge-code.json",
+      "artifact_hash": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+      "acceptance_criterion": "Observed order is at least 1.95.",
+      "evidence_state": "pass",
+      "reviewer_decision": "accepted",
+      "decision_source": "deterministic-check"
+    },
+    {
+      "edge_id": "edge-solution",
+      "assurance_activity": "solution-verification",
+      "test_id": "test-grid-convergence",
+      "run_id": "run-sha256:2222222222222222222222222222222222222222222222222222222222222222",
+      "artifact_path": "artifacts/edge-solution.json",
+      "artifact_hash": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+      "acceptance_criterion": "Discretization uncertainty is below 0.2 K.",
+      "evidence_state": "pass",
+      "reviewer_decision": "accepted",
+      "decision_source": "deterministic-check"
+    },
+    {
+      "edge_id": "edge-validation",
+      "assurance_activity": "model-validation",
+      "test_id": "test-bench-comparison",
+      "run_id": "run-sha256:3333333333333333333333333333333333333333333333333333333333333333",
+      "artifact_path": "artifacts/edge-validation.json",
+      "artifact_hash": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
+      "acceptance_criterion": "Prediction error is inside the validation interval.",
+      "evidence_state": "pass",
+      "reviewer_decision": "accepted",
+      "decision_source": "human-reviewer"
+    },
+    {
+      "edge_id": "edge-uq",
+      "assurance_activity": "uncertainty-quantification",
+      "test_id": "test-coverage",
+      "run_id": "run-sha256:4444444444444444444444444444444444444444444444444444444444444444",
+      "artifact_path": "artifacts/edge-uq.json",
+      "artifact_hash": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
+      "acceptance_criterion": "Observed coverage is at least 0.93.",
+      "evidence_state": "pass",
+      "reviewer_decision": "accepted",
+      "decision_source": "deterministic-check"
+    }
+  ],
+  "final_decision": {
+    "status": "accepted",
+    "decision_source": "human-reviewer",
+    "rationale": "The accountable reviewer accepted each distinct assurance argument."
+  }
+}

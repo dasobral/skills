@@ -1,0 +1,27 @@
+{
+  "challenge_id": "challenge-review-only",
+  "model_revision": "git:abcdef0123456789",
+  "dataset_hashes": {
+    "benchmark": "sha256:6666666666666666666666666666666666666666666666666666666666666666"
+  },
+  "calibration_partitions": ["train-regime-a", "train-regime-b"],
+  "validation_partitions": ["holdout-regime-c"],
+  "checks": {
+    "grouped_regime_splits": {"status": "pass", "evidence": ["split.json"], "rationale": "Regimes are grouped."},
+    "preprocessing_leakage": {"status": "pass", "evidence": ["pipeline.json"], "rationale": "Transforms fit on training data."},
+    "extrapolation": {"status": "pass", "evidence": ["regimes.json"], "rationale": "Extrapolation is reported separately."},
+    "conservation": {"status": "pass", "evidence": ["conservation.json"], "rationale": "Conservation tolerance holds.", "declared_invariant": true},
+    "invariance": {"status": "pass", "evidence": ["invariance.json"], "rationale": "Declared invariance holds.", "declared_invariant": true},
+    "positivity": {"status": "pass", "evidence": ["positivity.json"], "rationale": "Positive fields remain positive.", "declared_invariant": true},
+    "boundary_conditions": {"status": "pass", "evidence": ["boundaries.json"], "rationale": "Boundary constraints hold.", "declared_invariant": true},
+    "residual_vs_solution_error": {"status": "pass", "evidence": ["errors.json"], "rationale": "Both errors are reported."},
+    "uncertainty_coverage_sharpness": {"status": "pass", "evidence": ["coverage.json"], "rationale": "Coverage and sharpness are reported."},
+    "seed_sensitivity": {"status": "pass", "evidence": ["seeds.json"], "rationale": "All pinned seeds are retained."},
+    "matched_error_baselines": {"status": "pass", "evidence": ["baselines.json"], "rationale": "Baselines use matched error."},
+    "total_cost": {"status": "pass", "evidence": ["cost.json"], "rationale": "End-to-end cost is reported."}
+  },
+  "model_adequacy": {
+    "finding": "inadequate",
+    "rationale": "The evidence is complete, but adequacy remains a reviewer finding."
+  }
+}

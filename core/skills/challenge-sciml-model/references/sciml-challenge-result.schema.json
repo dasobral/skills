@@ -1,0 +1,73 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://dasobral.example/schemas/sciml-challenge-result.schema.json",
+  "title": "SciML challenge result",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["challenge_id", "model_revision", "dataset_hashes", "calibration_partitions", "validation_partitions", "checks", "model_adequacy"],
+  "properties": {
+    "challenge_id": {"type": "string", "minLength": 1},
+    "model_revision": {"type": "string", "minLength": 1},
+    "dataset_hashes": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"}
+    },
+    "calibration_partitions": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+    "validation_partitions": {"type": "array", "minItems": 1, "items": {"type": "string"}, "uniqueItems": true},
+    "checks": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "grouped_regime_splits",
+        "preprocessing_leakage",
+        "extrapolation",
+        "conservation",
+        "invariance",
+        "positivity",
+        "boundary_conditions",
+        "residual_vs_solution_error",
+        "uncertainty_coverage_sharpness",
+        "seed_sensitivity",
+        "matched_error_baselines",
+        "total_cost"
+      ],
+      "properties": {
+        "grouped_regime_splits": {"$ref": "#/$defs/check"},
+        "preprocessing_leakage": {"$ref": "#/$defs/check"},
+        "extrapolation": {"$ref": "#/$defs/check"},
+        "conservation": {"$ref": "#/$defs/check"},
+        "invariance": {"$ref": "#/$defs/check"},
+        "positivity": {"$ref": "#/$defs/check"},
+        "boundary_conditions": {"$ref": "#/$defs/check"},
+        "residual_vs_solution_error": {"$ref": "#/$defs/check"},
+        "uncertainty_coverage_sharpness": {"$ref": "#/$defs/check"},
+        "seed_sensitivity": {"$ref": "#/$defs/check"},
+        "matched_error_baselines": {"$ref": "#/$defs/check"},
+        "total_cost": {"$ref": "#/$defs/check"}
+      }
+    },
+    "model_adequacy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["finding", "rationale"],
+      "properties": {
+        "finding": {"enum": ["adequate", "inadequate", "uncertain"]},
+        "rationale": {"type": "string", "minLength": 1}
+      }
+    }
+  },
+  "$defs": {
+    "check": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "evidence", "rationale"],
+      "properties": {
+        "status": {"enum": ["pass", "fail", "unknown", "not-applicable", "evidence-gap"]},
+        "evidence": {"type": "array", "items": {"type": "string"}},
+        "rationale": {"type": "string", "minLength": 1},
+        "declared_invariant": {"type": "boolean", "default": false}
+      }
+    }
+  }
+}

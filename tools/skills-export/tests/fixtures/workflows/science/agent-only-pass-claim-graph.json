@@ -1,0 +1,35 @@
+{
+  "graph_id": "graph-agent-only",
+  "claim": {
+    "claim_id": "claim-agent-only",
+    "statement": "The model is adequate.",
+    "context_of_use": "Unspecified.",
+    "quantity_of_interest": "Unspecified."
+  },
+  "runs": [
+    {
+      "run_id": "run-sha256:5555555555555555555555555555555555555555555555555555555555555555",
+      "run_record_path": "runs/edge-agent.json",
+      "run_record_hash": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+    }
+  ],
+  "edges": [
+    {
+      "edge_id": "edge-agent",
+      "assurance_activity": "model-validation",
+      "test_id": "agent-review",
+      "run_id": "run-sha256:5555555555555555555555555555555555555555555555555555555555555555",
+      "artifact_path": "artifacts/edge-agent.json",
+      "artifact_hash": "sha256:5555555555555555555555555555555555555555555555555555555555555555",
+      "acceptance_criterion": "Agent says acceptable.",
+      "evidence_state": "unknown",
+      "reviewer_decision": "accepted",
+      "decision_source": "agent-analysis"
+    }
+  ],
+  "final_decision": {
+    "status": "accepted",
+    "decision_source": "agent-analysis",
+    "rationale": "Agent-only pass decisions are forbidden."
+  }
+}

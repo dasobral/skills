@@ -1,0 +1,10 @@
+{
+  "quantities": [
+    {
+      "name": "peak_temperature",
+      "unit": "K",
+      "dimension": "thermodynamic-temperature",
+      "coordinate_frame": "plate-fixed"
+    }
+  ]
+}
