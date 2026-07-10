@@ -378,16 +378,15 @@ Golden and structural tests cover all eleven Codex plugins and all six Cursor pl
 
 ### Codex compatibility tests
 
-When the Codex CLI is available, integration tests use an isolated home and repository to:
+When the Codex CLI and its marketplace subcommands are available, integration
+tests use an isolated home and repository to add and inspect the local
+marketplace. Current official CLI commands manage marketplace sources; local
+plugin installation is completed through the ChatGPT desktop plugin directory.
 
-- add or inspect the local marketplace;
-- verify native plugin discovery;
-- validate or install each plugin;
-- verify skill discovery;
-- load trusted hooks;
-- exercise the agent setup skill in project scope.
-
-Tests avoid altering the developer's real Codex configuration.
+The same isolated test validates generated plugin manifests, skills, hooks, and
+project-scoped agent installation locally. It does not present those local
+checks as proof that the CLI loaded or installed plugin components. Tests avoid
+altering the developer's real Codex configuration.
 
 ### Agent installer tests
 

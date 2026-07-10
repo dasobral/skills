@@ -58,7 +58,7 @@ Each skill owns its workflow instructions and references. Deterministic artifact
 - Create `tools/skills-export/tests/test_agent_installer.py`.
 - Create `tools/skills-export/tests/test_workflow_contracts.py`.
 - Create `tools/skills-export/tests/test_cursor_regression.py`.
-- Create `tools/skills-export/tests/integration/test_codex_cli.py`.
+- Create `tools/skills-export/tests/integration/test_codex_marketplace_cli.py`.
 - Create `tools/skills-export/tests/fixtures/` for invalid plugins and workflow scenarios.
 
 ## Task 1: Establish executable tests and native layout expectations
@@ -741,11 +741,17 @@ git commit -m "feat: wire native Codex plugin pipeline"
 - Modify: `tools/skills-export/README.md`
 - Modify: `landing/README.md`
 - Modify: `CHANGELOG.md`
-- Create: `tools/skills-export/tests/integration/test_codex_cli.py`
+- Create: `tools/skills-export/tests/integration/test_codex_marketplace_cli.py`
 
-- [ ] **Step 1: Add opt-in Codex CLI integration tests**
+- [ ] **Step 1: Add opt-in Codex marketplace CLI integration tests**
 
-Use temporary `HOME`, `CODEX_HOME`, and repository directories. Skip with a precise reason when `codex` is unavailable. Test local marketplace inspection/discovery, plugin manifest loading, skill visibility, hook parsing, and project-scoped agent installation without mutating real user configuration.
+Use temporary `HOME`, `CODEX_HOME`, and repository directories. Skip with a
+precise reason when `codex` or its marketplace subcommands are unavailable.
+Use the Codex CLI to add and list the local marketplace. Current official Codex
+CLI commands manage marketplace sources; local plugin installation is performed
+through the ChatGPT desktop plugin directory. Validate plugin manifests, skills,
+hooks, and project-scoped agent installation locally in the same isolated test
+without claiming that the CLI loaded or installed those components.
 
 - [ ] **Step 2: Update architecture documentation**
 
@@ -774,7 +780,8 @@ Expected: maintain succeeds and a second generation produces no diff.
 
 Run: `python -m pytest tools/skills-export/tests -v`
 
-Expected: unit and scenario tests PASS; Codex integration tests PASS when CLI support is available or SKIP with the explicit availability reason.
+Expected: unit and scenario tests PASS; the Codex marketplace CLI test passes
+when CLI support is available or skips with the explicit availability reason.
 
 - [ ] **Step 5: Run repository validation**
 

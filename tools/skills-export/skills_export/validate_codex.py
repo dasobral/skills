@@ -16,6 +16,12 @@ except ModuleNotFoundError:  # Python 3.10
 
 
 NAME_RE = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
+SEMVER_RE = re.compile(
+    r"^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)"
+    r"(?:-(?:0|[1-9]\d*|\d*[A-Za-z-][0-9A-Za-z-]*)"
+    r"(?:\.(?:0|[1-9]\d*|\d*[A-Za-z-][0-9A-Za-z-]*))*)?"
+    r"(?:\+[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?$"
+)
 PLUGIN_ROOT_PATH_RE = re.compile(r"\$\{PLUGIN_ROOT\}/([^\s\"']+)")
 COMPONENT_FIELDS = ("skills", "hooks", "mcpServers", "apps")
 HOOK_EVENTS = {
@@ -537,6 +543,50 @@ def _validate_plugin(
             manifest_path,
             "plugin name must match its directory",
         )
+    version = manifest.get("version")
+    if not isinstance(version, str) or not SEMVER_RE.fullmatch(version):
+        _add(
+            issues,
+            root,
+            manifest_path,
+            "plugin version must be a semantic version",
+        )
+    description = manifest.get("description")
+    if not isinstance(description, str) or not description.strip():
+        _add(
+            issues,
+            root,
+            manifest_path,
+            "plugin must have a non-empty description",
+        )
+    author = manifest.get("author")
+    if not isinstance(author, dict):
+        _add(issues, root, manifest_path, "plugin author must be an object")
+    elif not isinstance(author.get("name"), str) or not author["name"].strip():
+        _add(
+            issues,
+            root,
+            manifest_path,
+            "plugin author.name must be a non-empty string",
+        )
+    license_name = manifest.get("license")
+    if not isinstance(license_name, str) or not license_name.strip():
+        _add(
+            issues,
+            root,
+            manifest_path,
+            "plugin license must be a non-empty string",
+        )
+    keywords = manifest.get("keywords")
+    if not isinstance(keywords, list):
+        _add(issues, root, manifest_path, "plugin keywords must be a list")
+    elif any(not isinstance(keyword, str) for keyword in keywords):
+        _add(
+            issues,
+            root,
+            manifest_path,
+            "plugin keywords must contain strings",
+        )
     if expected is not None:
         for key in ("version", "keywords"):
             if manifest.get(key) != expected.get(key, [] if key == "keywords" else None):
@@ -555,12 +605,30 @@ def _validate_plugin(
                 manifest_path,
                 "plugin description does not match core manifest",
             )
-    if "interface" in manifest:
+    interface = manifest.get("interface")
+    if not isinstance(interface, dict):
+        _add(issues, root, manifest_path, "plugin interface must be an object")
+    else:
+        display_name = interface.get("displayName")
+        if not isinstance(display_name, str) or not display_name.strip():
+            _add(
+                issues,
+                root,
+                manifest_path,
+                "plugin interface.displayName must be a non-empty string",
+            )
+        elif expected is not None and display_name != expected.get("display_name"):
+            _add(
+                issues,
+                root,
+                manifest_path,
+                "plugin interface.displayName does not match core manifest",
+            )
         _validate_interface_paths(
             root=root,
             container=plugin_root,
             owner=manifest_path,
-            interface=manifest["interface"],
+            interface=interface,
             label="interface",
             issues=issues,
         )

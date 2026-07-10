@@ -4,6 +4,12 @@ This directory contains the Codex-specific authoring overlays for native
 plugins. Portable skills and shared metadata remain under `core/`; generated
 native plugins are written under `plugins/codex/`.
 
+The six cross-platform families (`codecraft`, `cpp-qkd-toolkit`,
+`agent-platform`, `aos-stack`, `scientific-computing`, and `career-writer`)
+also have Cursor output. The five workflow families (`agentic-trust-gate`,
+`agent-attack-replay`, `crypto-change-radar`, `entropy-flight-recorder`, and
+`scientific-claim-ledger`) are Codex-only.
+
 ## Overlay layout
 
 An adapter may provide:
@@ -17,9 +23,22 @@ An adapter may provide:
   and limitations copied into generated output;
 - `skills/` and safe assets — Codex-only additions.
 
+Add portable skill names and plugin metadata to `core/manifest.yaml`, keep
+portable instructions under `core/skills/`, and put only Codex-specific files
+in an overlay. Regenerate with:
+
+```bash
+./bin/skills-export sync codex
+./bin/skills-export validate codex
+```
+
+Do not edit `plugins/codex/` or `.agents/plugins/marketplace.json` directly.
+
 Agent templates are bundled but are not installed automatically. Plugins with
 agents receive the shared `install-plugin-agents` skill, which previews and
 installs them into project or user `.codex/agents/` only after confirmation.
+The native plugin installer likewise copies plugins and marketplace metadata
+without installing agents. Start a new Codex session after agent installation.
 
 ## Generated native plugin
 
@@ -36,6 +55,15 @@ The native marketplace is generated at `.agents/plugins/marketplace.json`.
 Flat skill export remains a separate compatibility artifact at
 `dist/codex/skills/`.
 
-Review and trust every bundled hook before enabling it. Hooks receive project
-context on standard input, emit the official Codex hook output schema, use
-bounded timeouts, and must not write project files.
+Review and trust every bundled hook and referenced script before enabling it.
+Hooks receive project context on standard input, emit Codex hook output, use
+bounded timeouts, and must not write project files. Static validation checks
+shape, references, and path containment; it does not establish that hook logic
+is trustworthy.
+
+The workflow overlays define evidence contracts, deterministic checks, agent
+authority, data handling, and explicit limitations in their READMEs. They do
+not certify safety, cryptographic or entropy adequacy, standards compliance, or
+scientific validity. Missing evidence and unavailable optional tooling remain
+visible `evidence-gap` states; authorization and expert decisions stay with the
+user.

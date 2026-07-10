@@ -114,6 +114,20 @@ def test_maintain_dry_run_reports_all_targets_without_writes(
     assert _files(repo_copy) == before
 
 
+def test_maintain_without_landing_inputs_preserves_manifest_bytes(
+    repo_copy: Path,
+) -> None:
+    manifest = repo_copy / "core" / "manifest.yaml"
+    original = manifest.read_bytes() + b"# formatting sentinel\n"
+    manifest.write_bytes(original)
+
+    result = maintain(repo_copy, skip_export=True)
+
+    assert result.ok()
+    assert result.ingest_skills == []
+    assert manifest.read_bytes() == original
+
+
 def test_maintain_dry_run_reports_platform_plugin_counts(
     repo_copy: Path,
     capsys,

@@ -87,7 +87,11 @@ def copy_tree(src: Path, dst: Path) -> None:
 
     if dst.exists():
         shutil.rmtree(dst)
-    shutil.copytree(src, dst)
+    shutil.copytree(
+        src,
+        dst,
+        ignore=shutil.ignore_patterns("__pycache__", "*.py[co]"),
+    )
 
 
 def enrich_skill(skill_dst: Path, root: Path) -> None:

@@ -121,8 +121,10 @@ def _write_codex_overlay(root: Path, plugin_name: str = "codecraft") -> None:
     scripts = adapter / "hooks" / "scripts"
     scripts.mkdir(exist_ok=True)
     (scripts / "check.py").write_text("print('ok')\n", encoding="utf-8")
+    display_name = manifest["plugins"][plugin_name]["display_name"]
     (adapter / ".codex-plugin" / "plugin.json").write_text(
-        '{"interface": {"displayName": "Codecraft"}}\n', encoding="utf-8"
+        json.dumps({"interface": {"displayName": display_name}}) + "\n",
+        encoding="utf-8",
     )
 
     shared = (

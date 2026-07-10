@@ -1,6 +1,6 @@
 # Landing zone
 
-Drop new skills here from **any platform** (Cursor, Claude Code, Codex, or portable Agent Skills). Run maintenance to ingest into the unified core and re-export everywhere.
+Drop new skills here from **any platform** (Cursor, Claude Code, Codex, or portable Agent Skills). Maintenance normalizes portable content, regenerates six native Cursor plugins and eleven native Codex plugins, then writes flat Claude/Codex skills.
 
 ## Structure
 
@@ -33,7 +33,7 @@ create_plugin: false     # if true + plugin missing, use registry new_plugins
 ## Commands
 
 ```bash
-# Full pipeline: ingest landing → validate → sync plugins/cursor → export Claude/Codex
+# Full pipeline: ingest → validate → sync both native trees → flat exports
 ./bin/skills-maintain
 
 # Preview without writing
@@ -42,9 +42,16 @@ create_plugin: false     # if true + plugin missing, use registry new_plugins
 # Ingest only
 ./bin/skills-export ingest
 
-# Export only (after manual core edits)
-./bin/skills-export sync cursor && ./bin/skills-export export all
+# Regenerate only (after manual core/adapter edits)
+./bin/skills-export sync cursor
+./bin/skills-export sync codex
+./bin/skills-export export all
 ```
+
+Native outputs are committed at `plugins/cursor/` and `plugins/codex/`.
+Marketplace metadata is generated at `.cursor-plugin/marketplace.json` and
+`.agents/plugins/marketplace.json`. Flat Codex compatibility skills remain
+separate at `dist/codex/skills/`.
 
 ## Periodic / autonomous use
 
@@ -72,3 +79,7 @@ See [scripts/cron/README.md](../scripts/cron/README.md).
 - Follow [Agent Skills](https://agentskills.io/specification) layout
 
 Incoming platform-native skills are **normalized** to portable core on ingest.
+Platform-specific agents, hooks, and manifests belong in
+`adapters/<platform>/<plugin>/`, not in landing skill content. Codex hooks must
+receive explicit trust review, and bundled agent templates require separate
+confirmed installation; ingest and maintenance never make either trusted.

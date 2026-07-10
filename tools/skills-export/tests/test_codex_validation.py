@@ -75,9 +75,12 @@ def _valid_repository(root: Path) -> Path:
             "name": "valid-plugin",
             "version": "1.0.0",
             "description": "Valid plugin.",
+            "author": {"name": "Test Author"},
+            "license": "MIT",
             "keywords": [],
             "skills": "./skills/",
             "hooks": "./hooks/hooks.json",
+            "interface": {"displayName": "Valid Plugin"},
         },
     )
     _write_json(
@@ -198,6 +201,43 @@ def test_rejects_duplicate_marketplace_plugins(tmp_path: Path) -> None:
     issues = validate_codex_plugins(tmp_path)
 
     assert any("duplicate marketplace plugin" in issue.message for issue in issues)
+
+
+@pytest.mark.parametrize(
+    ("mutation", "expected"),
+    [
+        (lambda data: data.update(version="release-1"), "semantic version"),
+        (lambda data: data.update(version="1.0.0-01"), "semantic version"),
+        (lambda data: data.update(description=" "), "non-empty description"),
+        (lambda data: data.pop("author"), "author must be an object"),
+        (lambda data: data.update(author={}), "author.name must be a non-empty string"),
+        (lambda data: data.update(license=""), "license must be a non-empty string"),
+        (lambda data: data.update(keywords="security"), "keywords must be a list"),
+        (lambda data: data.update(keywords=["valid", 3]), "keywords must contain strings"),
+        (
+            lambda data: data.update(interface={}),
+            "interface.displayName must be a non-empty string",
+        ),
+        (
+            lambda data: data["interface"].update(displayName="Wrong"),
+            "interface.displayName does not match core manifest",
+        ),
+    ],
+)
+def test_rejects_invalid_plugin_metadata(
+    tmp_path: Path,
+    mutation: Callable[[dict[str, object]], object],
+    expected: str,
+) -> None:
+    plugin = _valid_repository(tmp_path)
+    manifest = plugin / ".codex-plugin" / "plugin.json"
+    data = json.loads(manifest.read_text(encoding="utf-8"))
+    mutation(data)
+    _write_json(manifest, data)
+
+    issues = validate_codex_plugins(tmp_path)
+
+    assert any(expected in issue.message for issue in issues), issues
 
 
 def test_rejects_marketplace_source_outside_repository(tmp_path: Path) -> None:

@@ -1,6 +1,7 @@
 # Generated Cursor plugins
 
-Ready-to-use **Cursor** plugins assembled from `core/skills/` + `adapters/cursor/`.
+Six ready-to-use **Cursor** plugins assembled from `core/skills/` +
+`adapters/cursor/`.
 
 ```bash
 ./bin/skills-export sync cursor   # regenerate this tree
@@ -8,9 +9,11 @@ Ready-to-use **Cursor** plugins assembled from `core/skills/` + `adapters/cursor
 ./bin/skills-maintain
 ```
 
-Do **not** edit skills here — edit `core/skills/` (or drop into `landing/`) and re-sync.
+Do **not** edit skills here — edit `core/skills/` (or drop into `landing/`) and
+re-sync.
 
-Claude Code and Codex bundles are generated under `dist/` (not committed); only Cursor plugins are checked in under this directory.
+Eleven native Codex plugins are committed separately under `plugins/codex/`.
+Flat Claude and Codex skill exports are generated under `dist/`.
 
 ## Install locally
 
