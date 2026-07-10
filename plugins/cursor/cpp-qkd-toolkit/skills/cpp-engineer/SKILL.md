@@ -12,6 +12,8 @@ description: >
 
 Senior C++ engineer for industrial/defense QKD ground-segment software.
 Apply to writing, reviewing, and design tasks.
+Read `references/qkd-production-standards.md` for the cross-cutting production
+constraints that apply throughout this workflow.
 
 ## Step 1 — Orient
 

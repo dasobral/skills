@@ -1,0 +1,149 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/agent-security/trial-result.schema.json",
+  "title": "Hash-bound isolated replay trial",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "trial_id",
+    "assertion_source",
+    "role_input_hashes",
+    "deterministic_assertions",
+    "benign_assertions",
+    "attack_success",
+    "benign_success",
+    "tool_transcript",
+    "tool_transcript_hash",
+    "minimized_trace",
+    "observations",
+    "monitor",
+    "judge",
+    "evidence_state",
+    "trial_hash"
+  ],
+  "properties": {
+    "schema_version": {"const": "3.0"},
+    "trial_id": {"type": "string", "minLength": 1},
+    "assertion_source": {"const": "independent-parent-monitor"},
+    "role_input_hashes": {
+      "type": "object",
+      "required": ["attacker", "victim", "judge"],
+      "properties": {
+        "attacker": {"$ref": "#/$defs/hash"},
+        "victim": {"$ref": "#/$defs/hash"},
+        "judge": {"$ref": "#/$defs/hash"}
+      },
+      "additionalProperties": false
+    },
+    "deterministic_assertions": {"type": "array", "items": {"$ref": "#/$defs/assertion"}},
+    "benign_assertions": {"type": "array", "items": {"$ref": "#/$defs/monitor_assertion"}},
+    "attack_success": {"type": "boolean"},
+    "benign_success": {"type": "boolean"},
+    "tool_transcript": {"type": "array", "items": {"type": "object"}},
+    "tool_transcript_hash": {"$ref": "#/$defs/hash"},
+    "minimized_trace": {"type": "array", "items": {"type": "object"}},
+    "observations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "trial_id",
+          "scenario_hash",
+          "sequence",
+          "role",
+          "tool",
+          "request_hash",
+          "result_hash",
+          "workspace_before_hash",
+          "workspace_after_hash",
+          "network_attempted",
+          "network_allowed",
+          "side_effects",
+          "previous_observation_hash",
+          "observation_hash"
+        ],
+        "properties": {
+          "trial_id": {"type": "string"},
+          "scenario_hash": {"$ref": "#/$defs/hash"},
+          "sequence": {"type": "integer", "minimum": 1},
+          "role": {"enum": ["attacker", "victim", "monitor"]},
+          "tool": {"type": "string"},
+          "request_hash": {"$ref": "#/$defs/hash"},
+          "result_hash": {"$ref": "#/$defs/hash"},
+          "workspace_before_hash": {"$ref": "#/$defs/hash"},
+          "workspace_after_hash": {"$ref": "#/$defs/hash"},
+          "network_attempted": {"type": "boolean"},
+          "network_allowed": {"const": false},
+          "side_effects": {"type": "array", "items": {"type": "string"}},
+          "previous_observation_hash": {"$ref": "#/$defs/hash"},
+          "observation_hash": {"$ref": "#/$defs/hash"},
+          "monitor_assertion": {"$ref": "#/$defs/monitor_assertion"}
+        },
+        "additionalProperties": false
+      }
+    },
+    "monitor": {
+      "type": "object",
+      "required": [
+        "workspace_initial_hash",
+        "workspace_final_hash",
+        "observation_chain_head",
+        "real_network_requests",
+        "denied_network_requests",
+        "fixture_set_hash"
+      ],
+      "properties": {
+        "workspace_initial_hash": {"$ref": "#/$defs/hash"},
+        "workspace_final_hash": {"$ref": "#/$defs/hash"},
+        "observation_chain_head": {"$ref": "#/$defs/hash"},
+        "real_network_requests": {"const": 0},
+        "denied_network_requests": {"type": "integer", "minimum": 0},
+        "fixture_set_hash": {"$ref": "#/$defs/hash"}
+      },
+      "additionalProperties": false
+    },
+    "judge": {
+      "type": "object",
+      "required": ["input_hash", "evidence_state", "decision"],
+      "properties": {
+        "input_hash": {"$ref": "#/$defs/hash"},
+        "evidence_state": {"$ref": "#/$defs/evidence_state"},
+        "decision": {"enum": ["allow", "deny", "review-required"]}
+      },
+      "additionalProperties": false
+    },
+    "evidence_state": {"$ref": "#/$defs/evidence_state"},
+    "trial_hash": {"$ref": "#/$defs/hash"}
+  },
+  "$defs": {
+    "hash": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"},
+    "assertion": {
+      "type": "object",
+      "required": ["side_effect", "observed", "evidence_state"],
+      "properties": {
+        "side_effect": {"type": "string"},
+        "observed": {"type": "boolean"},
+        "evidence_state": {"$ref": "#/$defs/evidence_state"}
+      },
+      "additionalProperties": false
+    },
+    "monitor_assertion": {
+      "type": "object",
+      "required": ["criterion", "type", "artifact_path", "artifact_hash", "expected_hash", "observed", "evidence_state"],
+      "properties": {
+        "criterion": {"type": "string"},
+        "type": {"const": "file-contains"},
+        "artifact_path": {"type": "string"},
+        "artifact_hash": {"$ref": "#/$defs/hash"},
+        "expected_hash": {"$ref": "#/$defs/hash"},
+        "observed": {"type": "boolean"},
+        "evidence_state": {"$ref": "#/$defs/evidence_state"}
+      },
+      "additionalProperties": false
+    },
+    "evidence_state": {
+      "enum": ["pass", "fail", "unknown", "not-applicable", "evidence-gap"]
+    }
+  },
+  "additionalProperties": false
+}

@@ -1,0 +1,4 @@
+{
+  "name": "agent-security-fixture",
+  "postCreateCommand": "./scripts/lifecycle.sh"
+}

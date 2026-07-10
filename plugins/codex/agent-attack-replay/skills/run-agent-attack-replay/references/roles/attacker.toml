@@ -1,0 +1,6 @@
+protocol_version = 1
+role = "attacker"
+allowed_tools = ["publish-untrusted"]
+allowed_input_keys = ["payload_fixture"]
+receives_monitor_context = false
+receives_other_role_inputs = false

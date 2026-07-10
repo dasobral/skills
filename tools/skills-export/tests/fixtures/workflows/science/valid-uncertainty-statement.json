@@ -1,0 +1,9 @@
+{
+  "quantity": "peak plate temperature",
+  "meaning": "predictive",
+  "method": "held-out empirical coverage",
+  "coverage_probability": 0.95,
+  "interval": [412.1, 415.7],
+  "unit": "K",
+  "limitations": ["Qualified load case only."]
+}

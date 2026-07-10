@@ -1,0 +1,20 @@
+{
+  "name": "entropy-flight-recorder",
+  "version": "0.1.0",
+  "description": "Qualify entropy sources and determine when changes require requalification.",
+  "author": {
+    "name": "Daniel Sobral Blanco"
+  },
+  "license": "MIT",
+  "keywords": [
+    "entropy",
+    "rng",
+    "qrng",
+    "qualification"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Entropy Flight Recorder"
+  },
+  "hooks": "./hooks/hooks.json"
+}

@@ -1,0 +1,20 @@
+{
+  "name": "scientific-computing",
+  "version": "2.1.0",
+  "description": "Scientific computing platform design with right-sized infrastructure.",
+  "author": {
+    "name": "Daniel Sobral Blanco"
+  },
+  "license": "MIT",
+  "keywords": [
+    "scientific",
+    "hpc",
+    "architecture",
+    "emulators",
+    "pytorch"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Scientific Computing"
+  }
+}

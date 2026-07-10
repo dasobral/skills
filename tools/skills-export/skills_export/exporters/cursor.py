@@ -11,6 +11,7 @@ from ..manifest import (
     cursor_adapter_dir,
     cursor_plugins_dir,
     load_manifest,
+    platform_plugin_names,
     plugin_skill_names,
     repo_root,
 )
@@ -58,6 +59,8 @@ def export_cursor_plugin(
     clean: bool = True,
 ) -> Path:
     manifest = load_manifest(root)
+    if plugin_name not in platform_plugin_names(manifest, "cursor"):
+        raise ValueError(f"Plugin does not declare Cursor support: {plugin_name}")
     plugin_out = output_dir / plugin_name
     if clean and plugin_out.exists():
         shutil.rmtree(plugin_out)
@@ -95,6 +98,7 @@ def export_cursor_marketplace(
     output_dir: Path,
     *,
     sync_plugins: bool = False,
+    plugins: list[str] | None = None,
 ) -> Path:
     """Write marketplace.json.
 
@@ -103,10 +107,13 @@ def export_cursor_marketplace(
     """
     manifest = load_manifest(root)
     marketplace_path = root / ".cursor-plugin" / "marketplace.json"
+    supported = platform_plugin_names(manifest, "cursor")
+    names = supported if sync_plugins or plugins is None else plugins
 
-    plugins = []
-    for name, meta in manifest["plugins"].items():
-        plugins.append(
+    entries = []
+    for name in names:
+        meta = manifest["plugins"][name]
+        entries.append(
             {
                 "name": name,
                 "source": _marketplace_plugin_source(name, sync_plugins=sync_plugins),
@@ -121,7 +128,7 @@ def export_cursor_marketplace(
         # Preserve owner/metadata; refresh plugin list + sources from manifest
         by_name = {p["name"]: p for p in data.get("plugins", [])}
         refreshed = []
-        for entry in plugins:
+        for entry in entries:
             prev = by_name.get(entry["name"], {})
             merged = {**prev, **entry}
             # Keep curated marketplace description when present
@@ -132,17 +139,18 @@ def export_cursor_marketplace(
             if prev.get("category"):
                 merged["category"] = prev["category"]
             refreshed.append(merged)
-        # Keep stable order: existing first, then any new plugins
-        known = {p["name"] for p in refreshed}
-        for prev in data.get("plugins", []):
-            if prev["name"] not in known:
-                refreshed.append(prev)
         data["plugins"] = refreshed
     elif marketplace_path.is_file() and not sync_plugins:
         data = json.loads(marketplace_path.read_text(encoding="utf-8"))
-        # Dist copy: rewrite sources to bare plugin names (relative to dist/cursor)
-        for entry in data.get("plugins", []):
-            entry["source"] = entry["name"]
+        by_name = {entry["name"]: entry for entry in data.get("plugins", [])}
+        data["plugins"] = [
+            {
+                **by_name.get(entry["name"], {}),
+                **entry,
+                "source": entry["name"],
+            }
+            for entry in entries
+        ]
     else:
         data = {
             "name": manifest.get("marketplace", {}).get("name", "skills"),
@@ -151,7 +159,7 @@ def export_cursor_marketplace(
                 .get("description", "Portable skills marketplace")
                 .strip(),
             },
-            "plugins": plugins,
+            "plugins": entries,
         }
 
     if sync_plugins:
@@ -185,9 +193,29 @@ def export_cursor(
 
     output_dir.mkdir(parents=True, exist_ok=True)
     manifest = load_manifest(root)
-    names = plugins or list(manifest["plugins"].keys())
+    supported = platform_plugin_names(manifest, "cursor")
+    if plugins is not None:
+        unknown = [name for name in plugins if name not in manifest["plugins"]]
+        if unknown:
+            raise KeyError(f"Unknown plugin: {unknown[0]}")
+        names = [name for name in plugins if name in supported]
+    else:
+        names = supported
+        if sync_plugins:
+            for path in output_dir.iterdir():
+                if path.name in names or not (path.is_dir() or path.is_symlink()):
+                    continue
+                if path.is_symlink():
+                    path.unlink()
+                else:
+                    shutil.rmtree(path)
     results = []
     for name in names:
         results.append(export_cursor_plugin(root, name, output_dir))
-    export_cursor_marketplace(root, output_dir, sync_plugins=sync_plugins)
+    export_cursor_marketplace(
+        root,
+        output_dir,
+        sync_plugins=sync_plugins,
+        plugins=names,
+    )
     return results

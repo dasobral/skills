@@ -1,5 +1,46 @@
 # Changelog
 
+## 2.3.0 — 2026-07-09
+
+### Added
+
+- **`plugins/codex/`** — eleven generated, committed native Codex plugins and
+  `.agents/plugins/marketplace.json`.
+- Codex adapters, safe local Python agent-template installation, and native
+  manifest/skill/hook/agent validation.
+- Isolated Codex CLI coverage for the officially documented local marketplace
+  `add` and `list` commands. Local plugin installation remains a ChatGPT
+  desktop app workflow; the tests do not claim CLI plugin loading.
+- Five Codex workflow plugins:
+  - `agentic-trust-gate`
+  - `agent-attack-replay`
+  - `crypto-change-radar`
+  - `entropy-flight-recorder`
+  - `scientific-claim-ledger`
+- Evidence contracts and scenarios for trust/MCP drift, agent attack replay,
+  cryptographic and PQC change, entropy qualification, and scientific claims.
+
+### Changed
+
+- `skills-maintain` now validates core, regenerates six Cursor and eleven Codex
+  native plugins, validates both generated trees, and then exports flat skills.
+- `skills-export sync codex` owns native Codex generation; `export codex`
+  remains the separate flat export at `dist/codex/skills/`.
+- `skills-install codex --plugins --project|--user` installs native plugin and
+  marketplace files without automatically installing custom agents.
+- Codex hooks require explicit trust review. Static validation proves shape and
+  path containment, not that hook behavior is trustworthy.
+
+### Security and evidence
+
+- Workflow outputs preserve `unknown`, `not-applicable`, and `evidence-gap`
+  states instead of fabricating certainty when evidence or optional tools are
+  unavailable.
+- Workflow plugins do not certify agent/repository safety, cryptographic or
+  entropy adequacy, standards compliance, scientific validity, or release
+  readiness; authorization, sandboxing, secret handling, and expert review
+  remain user responsibilities.
+
 ## 2.2.0 — 2026-07-09
 
 ### Added

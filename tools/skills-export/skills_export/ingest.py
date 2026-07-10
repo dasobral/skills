@@ -280,7 +280,11 @@ def ingest_landing(root: Path | None = None, *, dry_run: bool = False) -> Ingest
                     if rel:
                         result.archived.append(rel)
 
-    if not dry_run and result.ok():
+    if (
+        not dry_run
+        and result.ok()
+        and (result.ingested_skills or result.ingested_plugins)
+    ):
         save_manifest(root, manifest)
 
     return result

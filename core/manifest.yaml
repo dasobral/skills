@@ -37,6 +37,9 @@ plugins:
       agents: true
       rules: true
       hooks: true
+    codex:
+      agents: true
+      hooks: true
   cpp-qkd-toolkit:
     display_name: C++ QKD Toolkit
     version: 2.1.0
@@ -64,6 +67,9 @@ plugins:
       agents: true
       rules: true
       hooks: true
+    codex:
+      agents: true
+      hooks: true
   agent-platform:
     display_name: Agent Platform
     version: 2.1.0
@@ -86,6 +92,9 @@ plugins:
     cursor:
       agents: true
       hooks: true
+    codex:
+      agents: true
+      hooks: false
   aos-stack:
     display_name: AOS Stack
     version: 2.1.0
@@ -111,6 +120,9 @@ plugins:
     cursor:
       agents: true
       hooks: true
+    codex:
+      agents: true
+      hooks: true
   scientific-computing:
     display_name: Scientific Computing
     version: 2.1.0
@@ -132,6 +144,9 @@ plugins:
     - scientific-platform-architect
     cursor:
       agents: true
+    codex:
+      agents: true
+      hooks: false
   career-writer:
     display_name: Career Writer
     version: 2.1.0
@@ -153,3 +168,61 @@ plugins:
     - career-documents
     cursor:
       agents: true
+    codex:
+      agents: true
+      hooks: false
+  agentic-trust-gate:
+    display_name: Agentic Trust Gate
+    version: 0.1.0
+    description: Assess repository control-plane trust and review MCP capability drift.
+    category: security
+    keywords: [agent-security, repository-trust, mcp, supply-chain]
+    tags: [security, trust, mcp]
+    skills: [assess-repository-trust, review-mcp-drift]
+    codex:
+      agents: true
+      hooks: true
+  agent-attack-replay:
+    display_name: Agent Attack Replay
+    version: 0.1.0
+    description: Build and replay controlled agent attack scenarios with measurable evidence.
+    category: security
+    keywords: [agent-security, attack-replay, evaluation, prompt-injection]
+    tags: [security, evaluation, replay]
+    skills: [build-attack-scenario, run-agent-attack-replay]
+    codex:
+      agents: true
+      hooks: true
+  crypto-change-radar:
+    display_name: Crypto Change Radar
+    version: 0.1.0
+    description: Inventory cryptography, review changes, and plan interoperable PQC migration.
+    category: security
+    keywords: [cryptography, cbom, pqc, interoperability]
+    tags: [security, cryptography, pqc]
+    skills: [build-crypto-inventory, review-crypto-delta, plan-pqc-migration, test-crypto-interoperability]
+    codex:
+      agents: true
+      hooks: true
+  entropy-flight-recorder:
+    display_name: Entropy Flight Recorder
+    version: 0.1.0
+    description: Qualify entropy sources and determine when changes require requalification.
+    category: security
+    keywords: [entropy, rng, qrng, qualification]
+    tags: [security, entropy, evidence]
+    skills: [qualify-entropy-source, review-entropy-change]
+    codex:
+      agents: true
+      hooks: true
+  scientific-claim-ledger:
+    display_name: Scientific Claim Ledger
+    version: 0.1.0
+    description: Capture reproducible runs and audit scientific and SciML claims against evidence.
+    category: research
+    keywords: [scientific-computing, reproducibility, sciml, validation]
+    tags: [science, reproducibility, evidence]
+    skills: [capture-scientific-run, audit-scientific-claim, challenge-sciml-model]
+    codex:
+      agents: true
+      hooks: true

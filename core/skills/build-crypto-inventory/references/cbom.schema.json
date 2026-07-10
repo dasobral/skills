@@ -1,0 +1,63 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Focused cryptographic bill of materials",
+  "type": "object",
+  "required": ["schema_version", "evidence_state", "repository", "assets", "runtime_observation"],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "evidence_state": {"enum": ["pass", "fail", "unknown", "not-applicable", "evidence-gap"]},
+    "repository": {
+      "type": "object",
+      "required": ["identity", "revision"],
+      "properties": {
+        "identity": {"type": "string"},
+        "revision": {"type": "string"}
+      },
+      "additionalProperties": false
+    },
+    "assets": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["asset_id", "source_class", "location", "algorithm", "parameters", "mode", "protocol", "provider_boundary", "key_purpose", "fallback", "owner", "confidence", "evidence_state", "evidence_hash"],
+        "properties": {
+          "asset_id": {"type": "string"},
+          "source_class": {"enum": ["source", "dependency", "binary", "configuration", "certificate", "runtime"]},
+          "location": {"type": "string"},
+          "algorithm": {"type": "string"},
+          "parameters": {
+            "type": "object",
+            "properties": {
+              "bits": {"type": "integer", "minimum": 1},
+              "curve": {"type": "string"},
+              "digest": {"type": "string"},
+              "security_level": {"type": "integer", "minimum": 1}
+            },
+            "additionalProperties": false
+          },
+          "mode": {"type": "string"},
+          "protocol": {"type": "string"},
+          "provider_boundary": {"type": "string"},
+          "key_purpose": {"type": "string"},
+          "fallback": {"type": "string"},
+          "owner": {"type": "string"},
+          "confidence": {"enum": ["high", "medium", "low"]},
+          "evidence_state": {"enum": ["pass", "fail", "unknown", "not-applicable", "evidence-gap"]},
+          "evidence_hash": {"type": "string", "pattern": "sha256:[0-9a-f]{64}"}
+        },
+        "additionalProperties": false
+      }
+    },
+    "runtime_observation": {
+      "type": "object",
+      "required": ["authorized", "collected", "evidence_state"],
+      "properties": {
+        "authorized": {"type": "boolean"},
+        "collected": {"type": "boolean"},
+        "evidence_state": {"enum": ["pass", "fail", "unknown", "not-applicable", "evidence-gap"]}
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

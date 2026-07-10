@@ -1,0 +1,85 @@
+{
+  "run_id": "run-sha256:0217ed643e0f30f4ea6afdcff37325ca4b3bd81c38db23c38443a4853fe742a4",
+  "context_of_use": "Predict peak plate temperature during the qualified load case.",
+  "quantity_of_interest": "peak plate temperature",
+  "unit_registry": {
+    "quantities": [
+      {
+        "name": "peak_temperature",
+        "unit": "K",
+        "dimension": "thermodynamic-temperature",
+        "coordinate_frame": "plate-fixed"
+      }
+    ]
+  },
+  "coordinate_frame": "plate-fixed",
+  "tolerances": {"absolute": 0.1, "relative": 0.001},
+  "uncertainty": {
+    "state": "pass",
+    "value": {
+      "quantity": "peak plate temperature",
+      "meaning": "predictive",
+      "method": "held-out empirical coverage",
+      "coverage_probability": 0.95,
+      "interval": [412.1, 415.7],
+      "unit": "K",
+      "limitations": ["Qualified load case only."]
+    },
+    "reason": "Uncertainty statement supplied by the run owner."
+  },
+  "acceptance_threshold": {"operator": "<=", "value": 420.0, "unit": "K"},
+  "source_revision": {
+    "state": "pass",
+    "value": "git:0123456789abcdef",
+    "reason": "Captured from the repository."
+  },
+  "input_hashes": {
+    "mesh": {
+      "state": "pass",
+      "value": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "reason": "Input was readable."
+    }
+  },
+  "artifacts": {},
+  "environment": {
+    "state": "pass",
+    "value": {"os": "linux", "container": "science@sha256:abc"},
+    "reason": "Captured from the process environment."
+  },
+  "compiler_settings": {
+    "state": "pass",
+    "value": {"compiler": "cc", "version": "example 1.0", "flags": ["-O2"]},
+    "reason": "Compiler version command succeeded."
+  },
+  "runtime_settings": {
+    "state": "pass",
+    "value": {"runtime": "python-3.12.3"},
+    "reason": "Captured from the active runtime."
+  },
+  "hardware": {
+    "state": "pass",
+    "value": {"cpu": "example-cpu", "accelerator": "none"},
+    "reason": "Captured from the host."
+  },
+  "parallel_layout": {
+    "state": "pass",
+    "value": {"processes": 2, "threads_per_process": 4},
+    "reason": "Captured from run configuration."
+  },
+  "seeds": {
+    "state": "pass",
+    "value": [17, 23, 101],
+    "reason": "Provided by the caller."
+  },
+  "replay_command": {
+    "state": "pass",
+    "value": {
+      "argv": ["python3", "run_model.py", "--case", "qualified-load"],
+      "executable_hash": "sha256:8888888888888888888888888888888888888888888888888888888888888888",
+      "redacted_arguments": []
+    },
+    "reason": "Provided by the caller."
+  },
+  "reproducibility_class": "numerically-equivalent",
+  "results": {"peak_temperature": 413.9}
+}

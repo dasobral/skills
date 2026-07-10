@@ -1,0 +1,27 @@
+{
+  "challenge_id": "challenge-overlap",
+  "model_revision": "git:abcdef0123456789",
+  "dataset_hashes": {
+    "benchmark": "sha256:7777777777777777777777777777777777777777777777777777777777777777"
+  },
+  "calibration_partitions": ["shared-regime"],
+  "validation_partitions": ["shared-regime"],
+  "checks": {
+    "grouped_regime_splits": {"status": "pass", "evidence": [], "rationale": "Recorded."},
+    "preprocessing_leakage": {"status": "fail", "evidence": [], "rationale": "Overlap detected."},
+    "extrapolation": {"status": "not-applicable", "evidence": [], "rationale": "No extrapolation claim."},
+    "conservation": {"status": "pass", "evidence": [], "rationale": "Within tolerance.", "declared_invariant": true},
+    "invariance": {"status": "pass", "evidence": [], "rationale": "Within tolerance.", "declared_invariant": true},
+    "positivity": {"status": "pass", "evidence": [], "rationale": "Within tolerance.", "declared_invariant": true},
+    "boundary_conditions": {"status": "pass", "evidence": [], "rationale": "Within tolerance.", "declared_invariant": true},
+    "residual_vs_solution_error": {"status": "pass", "evidence": [], "rationale": "Both reported."},
+    "uncertainty_coverage_sharpness": {"status": "evidence-gap", "evidence": [], "rationale": "Not measured."},
+    "seed_sensitivity": {"status": "pass", "evidence": [], "rationale": "Measured."},
+    "matched_error_baselines": {"status": "pass", "evidence": [], "rationale": "Matched."},
+    "total_cost": {"status": "pass", "evidence": [], "rationale": "Recorded."}
+  },
+  "model_adequacy": {
+    "finding": "uncertain",
+    "rationale": "Objective overlap must be fixed before review."
+  }
+}

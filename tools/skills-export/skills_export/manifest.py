@@ -38,11 +38,30 @@ def cursor_plugins_dir(root: Path) -> Path:
     return root / "plugins" / "cursor"
 
 
+def codex_adapter_dir(root: Path, plugin_name: str) -> Path:
+    return root / "adapters" / "codex" / plugin_name
+
+
+def codex_plugins_dir(root: Path) -> Path:
+    return root / "plugins" / "codex"
+
+
 def plugin_skill_names(manifest: dict[str, Any], plugin: str) -> list[str]:
     plugins = manifest["plugins"]
     if plugin not in plugins:
         raise KeyError(f"Unknown plugin: {plugin}")
     return list(plugins[plugin]["skills"])
+
+
+def platform_plugin_names(
+    manifest: dict[str, Any],
+    platform: str,
+) -> list[str]:
+    return [
+        name
+        for name, metadata in manifest["plugins"].items()
+        if platform in metadata
+    ]
 
 
 def all_skill_names(manifest: dict[str, Any]) -> list[str]:
@@ -68,7 +87,11 @@ def copy_tree(src: Path, dst: Path) -> None:
 
     if dst.exists():
         shutil.rmtree(dst)
-    shutil.copytree(src, dst)
+    shutil.copytree(
+        src,
+        dst,
+        ignore=shutil.ignore_patterns("__pycache__", "*.py[co]"),
+    )
 
 
 def enrich_skill(skill_dst: Path, root: Path) -> None:
