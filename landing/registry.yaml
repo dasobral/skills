@@ -6,6 +6,7 @@ version: 1
 default_plugin: codecraft
 
 assignments:
+  agent-ste: agent-platform
   assess-repository-trust: agentic-trust-gate
   review-mcp-drift: agentic-trust-gate
   build-attack-scenario: agent-attack-replay

@@ -1,5 +1,22 @@
 # Changelog
 
+## 2.4.0 — 2026-07-19
+
+### Added
+
+- **`agent-ste`** skill in the `agent-platform` plugin — Agent Simplified
+  Technical English: controlled instruction language for LLM execution
+  (purpose, philosophy, transformation algorithm, mandatory rules, forbidden
+  patterns, eight worked examples, validation checklist, and draft Spec v1.0).
+- Design note: `docs/superpowers/specs/2026-07-19-agent-ste-design.md`.
+
+### Changed
+
+- `agent-platform` Cursor and Codex adapter READMEs document `agent-ste` in the
+  daily workflow.
+- Landing registry assignments may include non-workflow portable skills
+  alongside the five evidence workflow plugins.
+
 ## 2.3.0 — 2026-07-09
 
 ### Added

@@ -72,8 +72,9 @@ plugins:
       hooks: true
   agent-platform:
     display_name: Agent Platform
-    version: 2.1.0
-    description: 'Create agent definitions and orchestrate multi-agent pipelines.
+    version: 2.2.0
+    description: 'Rewrite instructions with Agent STE, create agent definitions,
+      and orchestrate multi-agent pipelines.
 
       '
     category: developer-tools
@@ -82,13 +83,17 @@ plugins:
     - orchestration
     - multi-agent
     - task-graph
+    - agent-ste
+    - controlled-language
     tags:
     - agents
     - orchestration
     - workflow
+    - instructions
     skills:
     - create-agent
     - orchestrate
+    - agent-ste
     cursor:
       agents: true
       hooks: true
@@ -176,31 +181,62 @@ plugins:
     version: 0.1.0
     description: Assess repository control-plane trust and review MCP capability drift.
     category: security
-    keywords: [agent-security, repository-trust, mcp, supply-chain]
-    tags: [security, trust, mcp]
-    skills: [assess-repository-trust, review-mcp-drift]
+    keywords:
+    - agent-security
+    - repository-trust
+    - mcp
+    - supply-chain
+    tags:
+    - security
+    - trust
+    - mcp
+    skills:
+    - assess-repository-trust
+    - review-mcp-drift
     codex:
       agents: true
       hooks: true
   agent-attack-replay:
     display_name: Agent Attack Replay
     version: 0.1.0
-    description: Build and replay controlled agent attack scenarios with measurable evidence.
+    description: Build and replay controlled agent attack scenarios with measurable
+      evidence.
     category: security
-    keywords: [agent-security, attack-replay, evaluation, prompt-injection]
-    tags: [security, evaluation, replay]
-    skills: [build-attack-scenario, run-agent-attack-replay]
+    keywords:
+    - agent-security
+    - attack-replay
+    - evaluation
+    - prompt-injection
+    tags:
+    - security
+    - evaluation
+    - replay
+    skills:
+    - build-attack-scenario
+    - run-agent-attack-replay
     codex:
       agents: true
       hooks: true
   crypto-change-radar:
     display_name: Crypto Change Radar
     version: 0.1.0
-    description: Inventory cryptography, review changes, and plan interoperable PQC migration.
+    description: Inventory cryptography, review changes, and plan interoperable PQC
+      migration.
     category: security
-    keywords: [cryptography, cbom, pqc, interoperability]
-    tags: [security, cryptography, pqc]
-    skills: [build-crypto-inventory, review-crypto-delta, plan-pqc-migration, test-crypto-interoperability]
+    keywords:
+    - cryptography
+    - cbom
+    - pqc
+    - interoperability
+    tags:
+    - security
+    - cryptography
+    - pqc
+    skills:
+    - build-crypto-inventory
+    - review-crypto-delta
+    - plan-pqc-migration
+    - test-crypto-interoperability
     codex:
       agents: true
       hooks: true
@@ -209,20 +245,40 @@ plugins:
     version: 0.1.0
     description: Qualify entropy sources and determine when changes require requalification.
     category: security
-    keywords: [entropy, rng, qrng, qualification]
-    tags: [security, entropy, evidence]
-    skills: [qualify-entropy-source, review-entropy-change]
+    keywords:
+    - entropy
+    - rng
+    - qrng
+    - qualification
+    tags:
+    - security
+    - entropy
+    - evidence
+    skills:
+    - qualify-entropy-source
+    - review-entropy-change
     codex:
       agents: true
       hooks: true
   scientific-claim-ledger:
     display_name: Scientific Claim Ledger
     version: 0.1.0
-    description: Capture reproducible runs and audit scientific and SciML claims against evidence.
+    description: Capture reproducible runs and audit scientific and SciML claims against
+      evidence.
     category: research
-    keywords: [scientific-computing, reproducibility, sciml, validation]
-    tags: [science, reproducibility, evidence]
-    skills: [capture-scientific-run, audit-scientific-claim, challenge-sciml-model]
+    keywords:
+    - scientific-computing
+    - reproducibility
+    - sciml
+    - validation
+    tags:
+    - science
+    - reproducibility
+    - evidence
+    skills:
+    - capture-scientific-run
+    - audit-scientific-claim
+    - challenge-sciml-model
     codex:
       agents: true
       hooks: true
