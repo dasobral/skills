@@ -1,7 +1,7 @@
 {
   "name": "agent-platform",
-  "version": "2.1.0",
-  "description": "Create agent definitions and orchestrate multi-agent pipelines.",
+  "version": "2.2.0",
+  "description": "Rewrite instructions with Agent STE, create agent definitions, and orchestrate multi-agent pipelines.",
   "author": {
     "name": "Daniel Sobral Blanco"
   },
@@ -10,7 +10,9 @@
     "agents",
     "orchestration",
     "multi-agent",
-    "task-graph"
+    "task-graph",
+    "agent-ste",
+    "controlled-language"
   ],
   "skills": "./skills/",
   "interface": {

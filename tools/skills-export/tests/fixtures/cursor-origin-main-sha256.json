@@ -16,11 +16,12 @@
   "allowlistedSkillChanges": {
     "agent-platform/skills/create-agent/": "Adds Codex-aware agent selection and TOML guidance while preserving Cursor generation.",
     "codecraft/skills/write-conformant-code/": "Moves objective conventions into portable references shared by Cursor and Codex.",
-    "cpp-qkd-toolkit/skills/cpp-engineer/": "Moves objective C++ and QKD production guidance into a portable reference."
+    "cpp-qkd-toolkit/skills/cpp-engineer/": "Moves objective C++ and QKD production guidance into a portable reference.",
+    "agent-platform/skills/agent-ste/": "Adds Agent STE controlled-instruction skill for reproducible multi-agent handoffs."
   },
   "files": {
-    "agent-platform/.cursor-plugin/plugin.json": "5ad88f93068d862ba9d7de8b298bf5b2e9daa02867d42ac2f47c02a8730b81d9",
-    "agent-platform/README.md": "9f92f10a9366645b0f8bffb9a88324156b92618540a392024a3bad570fc9f5a3",
+    "agent-platform/.cursor-plugin/plugin.json": "44df30e81cdf4dd581cf8d75ee35f218bfaa9e43c3ac98d3379e466333a6f387",
+    "agent-platform/README.md": "5ebd4d717ce155efe2e66ff05442a2a87ebf4f8def4d3aea14cb420a749e15a6",
     "agent-platform/agents/analyzer.md": "795cacedcc7a10ecdf332b734da912fa5d3eb9bb1015820ed61bb89e8619c7e4",
     "agent-platform/agents/orchestrator.md": "8fb902071f455585c6ceb502d2f63600c047e315f1cd0c751501877f9784263e",
     "agent-platform/agents/reader.md": "efd3e6a700bc6c1fce264c169cb22b4bc63e9155afb4bbdfc3b8f2d1bb1d0ee6",

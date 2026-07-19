@@ -6,6 +6,7 @@ Author and orchestrate multi-agent workflows in Cursor.
 
 | Skill | Purpose |
 |-------|---------|
+| `agent-ste` | Rewrite vague prompts into explicit, checkable agent instructions |
 | `create-agent` | Scaffold agent definition `.md` files |
 | `orchestrate` | Task graphs, parallel execution, artifact routing |
 
@@ -20,6 +21,7 @@ Author and orchestrate multi-agent workflows in Cursor.
 
 ## Quick Start
 
-1. Create agents: use `create-agent` skill
-2. Place `.md` files in `agents/`
-3. Run: use `orchestrate` skill with your task
+1. Rewrite the goal with `agent-ste` when the prompt is vague or multi-model
+2. Create agents: use `create-agent` skill
+3. Place `.md` files in `agents/`
+4. Run: use `orchestrate` skill with your task

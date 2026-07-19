@@ -4,20 +4,22 @@ Workflows for defining focused agents and coordinating evidence-bearing multi-ag
 
 ## Daily workflow
 
-1. Use `create-agent` to define one bounded role, input contract, output type, and constraints.
-2. Validate the generated TOML or Markdown definition for the target platform.
-3. Use `orchestrate` to build a dependency graph and route explicit artifacts.
-4. Review each agent result before composing the final report.
+1. Use `agent-ste` to rewrite vague goals into explicit, checkable instruction blocks before planning.
+2. Use `create-agent` to define one bounded role, input contract, output type, and constraints.
+3. Validate the generated TOML or Markdown definition for the target platform.
+4. Use `orchestrate` to build a dependency graph and route explicit artifacts.
+5. Review each agent result before composing the final report.
 
 ## Triggers
 
-Use when a task benefits from role separation, parallel analysis, repeatable agent definitions, or a traceable orchestration plan.
+Use when a task benefits from role separation, parallel analysis, repeatable agent definitions, or a traceable orchestration plan. Use `agent-ste` when prompts contain vague verbs, missing success criteria, or cross-model handoffs that must stay reproducible.
 
 ## Required inputs
 
 - Goal, platform, repository instructions, and allowed tools.
 - Role boundaries, dependencies, expected output types, and acceptance criteria.
 - Source artifacts each role may read and destinations it may write.
+- For `agent-ste`: actor, object, inputs, outputs, success/failure predicates, and scope fences.
 
 ## Artifacts
 

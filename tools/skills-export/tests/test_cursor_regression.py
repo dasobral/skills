@@ -52,6 +52,7 @@ def test_cursor_export_matches_explicit_origin_main_baseline(repo_copy: Path) ->
     ]
     assert sorted(generated_plugins) == sorted(expected_plugins)
     assert set(baseline["allowlistedSkillChanges"]) == {
+        "agent-platform/skills/agent-ste/",
         "agent-platform/skills/create-agent/",
         "codecraft/skills/write-conformant-code/",
         "cpp-qkd-toolkit/skills/cpp-engineer/",

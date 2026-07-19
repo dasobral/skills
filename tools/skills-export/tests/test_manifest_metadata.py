@@ -74,5 +74,9 @@ def test_landing_assigns_each_workflow_skill() -> None:
         for plugin, skills in WORKFLOW_SKILLS.items()
         for skill in skills
     }
-    assert registry["assignments"] == expected
+    assignments = registry["assignments"]
+    for skill, plugin in expected.items():
+        assert assignments.get(skill) == plugin
+    # Non-workflow portable skills may also appear in assignments.
+    assert assignments.get("agent-ste") == "agent-platform"
     assert registry.get("new_plugins") in (None, {})
