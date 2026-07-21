@@ -4,19 +4,19 @@
 
 ### Changed
 
-- **Architecture simplification** — unique ingest at `landing/skills/` only;
-  removed `landing/incoming/`.
-- **Claude symmetry** — Claude Code gets committed native plugins under
-  `plugins/claude/`, adapters under `adapters/claude/`, marketplace at
-  `.claude-plugin/marketplace.json`, and the same sync/validate/install path
-  as Cursor and Codex.
-- Core holds portable skills + manifest only; each export path owns scaffolding.
-- CLI: `sync all`, `validate claude`, `skills-install claude --plugins`.
+- **Ruthless simplification** — generated `plugins/`, marketplaces, and
+  overview artifacts are no longer committed. Source of truth is `core/` +
+  `adapters/` only. Assemble into gitignored `dist/` on demand; install
+  builds from core+adapters.
+- Unique ingest at `landing/skills/`.
+- One assembler for Cursor / Claude / Codex; thin CLI.
 
 ### Removed
 
-- Platform-specific landing incoming paths and Cursor-plugin ingest unpacking.
-- Claude-only bundle export as the primary Claude path.
+- Committed `plugins/{cursor,claude,codex}/` trees (duplicated every skill).
+- Committed marketplace JSON files.
+- `landing/incoming/`, Claude-only bundle path, heavy platform validators,
+  cursor regression hash fixtures.
 
 ## 2.4.0 — 2026-07-19
 

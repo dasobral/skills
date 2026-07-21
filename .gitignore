@@ -1,6 +1,12 @@
 dist/
+plugins/
+.cursor-plugin/
+.claude-plugin/
+.agents/plugins/
 __pycache__/
 *.py[cod]
 *.egg-info/
 .venv/
 scripts/cron/config.env
+landing/processed/
+landing/last-maintain.json

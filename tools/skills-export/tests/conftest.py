@@ -18,7 +18,7 @@ def repo_copy(tmp_path: Path) -> Path:
     copied_root = tmp_path / "repo"
     copied_root.mkdir()
 
-    for relative in ("core", "adapters", ".cursor-plugin"):
+    for relative in ("core", "adapters", "landing", "bin"):
         source = source_root / relative
         if source.exists():
             shutil.copytree(source, copied_root / relative)
