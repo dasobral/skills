@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/agent-security/replay-anchor.schema.json",
+  "title": "Create-only authenticated replay ledger anchor",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "ledger_sequence",
+    "entry_hmac",
+    "summary_hash",
+    "anchor_hmac"
+  ],
+  "properties": {
+    "schema_version": {"const": "2.0"},
+    "ledger_sequence": {"type": "integer", "minimum": 1},
+    "entry_hmac": {"$ref": "#/$defs/hmac"},
+    "summary_hash": {"$ref": "#/$defs/hash"},
+    "anchor_hmac": {"$ref": "#/$defs/hmac"}
+  },
+  "$defs": {
+    "hash": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"},
+    "hmac": {"type": "string", "pattern": "^hmac-sha256:[0-9a-f]{64}$"}
+  },
+  "additionalProperties": false
+}

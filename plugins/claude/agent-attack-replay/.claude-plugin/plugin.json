@@ -1,0 +1,17 @@
+{
+  "name": "agent-attack-replay",
+  "version": "0.1.0",
+  "description": "Build and replay controlled agent attack scenarios with measurable evidence.",
+  "author": {
+    "name": "Daniel Sobral Blanco"
+  },
+  "license": "MIT",
+  "keywords": [
+    "agent-security",
+    "attack-replay",
+    "evaluation",
+    "prompt-injection"
+  ],
+  "skills": "./skills/",
+  "displayName": "Agent Attack Replay"
+}

@@ -1,0 +1,18 @@
+{
+  "name": "career-writer",
+  "version": "2.1.0",
+  "description": "Professional career documents with audience-aware framing.",
+  "author": {
+    "name": "Daniel Sobral Blanco"
+  },
+  "license": "MIT",
+  "keywords": [
+    "career",
+    "cv",
+    "cover-letter",
+    "resume",
+    "applications"
+  ],
+  "skills": "./skills/",
+  "displayName": "Career Writer"
+}

@@ -9,23 +9,34 @@ from .exporters.claude import export_claude
 from .exporters.codex import export_codex, export_codex_plugins
 from .exporters.cursor import export_cursor
 from .ingest import ingest_landing, write_ingest_report
-from .maintain import maintain
+from .maintain import PLATFORMS, maintain
 from .manifest import (
+    claude_plugins_dir,
     codex_plugins_dir,
+    cursor_plugins_dir,
     load_manifest,
     platform_plugin_names,
     repo_root,
 )
 from .validate import validate_core
+from .validate_claude import validate_claude_plugins
 from .validate_codex import validate_codex_plugins
 from .validate_cursor import validate_cursor_plugins
+
+
+def _validate_platform(root: Path, platform: str) -> list:
+    if platform == "cursor":
+        return validate_cursor_plugins(root)
+    if platform == "claude":
+        return validate_claude_plugins(root)
+    return validate_codex_plugins(root)
 
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
         prog="skills-export",
         description=(
-            "Unified skills framework: ingest landing zone, export to "
+            "Unified skills framework: ingest landing/skills, export to "
             "Cursor, Claude Code, and Codex."
         ),
     )
@@ -46,7 +57,7 @@ def main(argv: list[str] | None = None) -> int:
     p_validate.add_argument(
         "target",
         nargs="?",
-        choices=["cursor", "codex"],
+        choices=["cursor", "claude", "codex"],
         help="Validate one generated platform (default: core and existing output)",
     )
 
@@ -56,7 +67,7 @@ def main(argv: list[str] | None = None) -> int:
     )
     p_sync.add_argument(
         "target",
-        choices=["cursor", "codex"],
+        choices=["cursor", "claude", "codex", "all"],
         help="Sync target",
     )
     p_sync.add_argument(
@@ -66,7 +77,10 @@ def main(argv: list[str] | None = None) -> int:
         help="Limit to specific plugin(s)",
     )
 
-    p_export = sub.add_parser("export", help="Export bundles to dist/")
+    p_export = sub.add_parser(
+        "export",
+        help="Export to dist/ (compatibility; prefer sync for committed plugins)",
+    )
     p_export.add_argument(
         "target",
         choices=["cursor", "claude", "codex", "all"],
@@ -86,14 +100,9 @@ def main(argv: list[str] | None = None) -> int:
         help="Limit to specific plugin(s)",
     )
     p_export.add_argument(
-        "--no-flat",
+        "--flat",
         action="store_true",
-        help="Skip flat skill export (claude/codex only)",
-    )
-    p_export.add_argument(
-        "--no-bundles",
-        action="store_true",
-        help="Skip per-plugin bundles (claude/codex only)",
+        help="Also write flat skills (claude only)",
     )
 
     p_list = sub.add_parser("list", help="List plugins and skills")
@@ -102,7 +111,7 @@ def main(argv: list[str] | None = None) -> int:
 
     p_ingest = sub.add_parser(
         "ingest",
-        help="Ingest skills from landing/ into core (normalize + manifest)",
+        help="Ingest skills from landing/skills/ into core",
     )
     p_ingest.add_argument(
         "--dry-run",
@@ -112,7 +121,7 @@ def main(argv: list[str] | None = None) -> int:
 
     p_maintain = sub.add_parser(
         "maintain",
-        help="Ingest landing → validate → sync plugins/cursor → export Claude/Codex",
+        help="Ingest landing → validate → sync cursor/claude/codex",
     )
     p_maintain.add_argument("--dry-run", action="store_true")
     p_maintain.add_argument("--skip-ingest", action="store_true")
@@ -121,7 +130,7 @@ def main(argv: list[str] | None = None) -> int:
 
     p_translate = sub.add_parser(
         "translate",
-        help="Alias: maintain (ingest + export all platforms)",
+        help="Alias: maintain (ingest + sync all platforms)",
     )
     p_translate.add_argument("--dry-run", action="store_true")
     p_translate.add_argument("--plugin", action="append", dest="plugins")
@@ -130,40 +139,25 @@ def main(argv: list[str] | None = None) -> int:
     root = (args.root or repo_root()).resolve()
 
     if args.command == "validate":
-        core_errors = [] if args.target in ("cursor", "codex") else validate_core(root)
-        cursor_issues = []
-        codex_issues = []
-        cursor_exists = (
-            (root / "plugins" / "cursor").exists()
-            or (root / ".cursor-plugin" / "marketplace.json").exists()
+        core_errors = (
+            [] if args.target in ("cursor", "claude", "codex") else validate_core(root)
         )
-        codex_exists = (
-            (root / "plugins" / "codex").exists()
-            or (root / ".agents" / "plugins" / "marketplace.json").exists()
-        )
-        if args.target == "cursor" or (args.target is None and cursor_exists):
-            cursor_issues = validate_cursor_plugins(root)
-        if args.target == "codex" or (args.target is None and codex_exists):
-            codex_issues = validate_codex_plugins(root)
-        if core_errors or cursor_issues or codex_issues:
+        platform_issues: list = []
+        for platform in PLATFORMS:
+            exists = (root / "plugins" / platform).exists()
+            if args.target == platform or (args.target is None and exists):
+                platform_issues.extend(_validate_platform(root, platform))
+        if core_errors or platform_issues:
             print("Validation failed:", file=sys.stderr)
             for err in core_errors:
                 print(f"  - {err}", file=sys.stderr)
-            for issue in [*cursor_issues, *codex_issues]:
+            for issue in platform_issues:
                 print(f"  - {issue.path}: {issue.message}", file=sys.stderr)
             return 1
-        if args.target in ("cursor", "codex"):
+        if args.target in PLATFORMS:
             manifest = load_manifest(root)
-            platform = args.target.capitalize()
-            count = (
-                len(platform_plugin_names(manifest, "cursor"))
-                if args.target == "cursor"
-                else len(manifest["plugins"])
-            )
-            print(
-                f"{platform} validation OK: "
-                f"{count} generated plugin(s)"
-            )
+            count = len(platform_plugin_names(manifest, args.target))
+            print(f"{args.target.capitalize()} validation OK: {count} generated plugin(s)")
             return 0
         manifest = load_manifest(root)
         n_plugins = len(manifest["plugins"])
@@ -190,26 +184,24 @@ def main(argv: list[str] | None = None) -> int:
         return 0
 
     if args.command == "sync":
-        if args.target == "cursor":
-            from .manifest import cursor_plugins_dir
-
-            out = cursor_plugins_dir(root)
-            paths = export_cursor(root, out, plugins=args.plugins, sync_root=True)
-            for p in paths:
-                print(f"synced {p.relative_to(root)}")
-            print(f"Synced {len(paths)} Cursor plugin(s) to plugins/cursor/")
-        else:
-            out = codex_plugins_dir(root)
-            paths = export_codex_plugins(root, out, plugins=args.plugins)
+        targets = list(PLATFORMS) if args.target == "all" else [args.target]
+        for target in targets:
+            if target == "cursor":
+                out = cursor_plugins_dir(root)
+                paths = export_cursor(root, out, plugins=args.plugins, sync_root=True)
+            elif target == "claude":
+                out = claude_plugins_dir(root)
+                paths = export_claude(root, out, plugins=args.plugins, sync_root=True)
+            else:
+                out = codex_plugins_dir(root)
+                paths = export_codex_plugins(root, out, plugins=args.plugins)
             for path in paths:
                 print(f"synced {path.relative_to(root)}")
-            print(f"Synced {len(paths)} Codex plugin(s) to plugins/codex/")
+            print(f"Synced {len(paths)} {target.capitalize()} plugin(s) to plugins/{target}/")
         return 0
 
     if args.command == "export":
-        targets = (
-            ["cursor", "claude", "codex"] if args.target == "all" else [args.target]
-        )
+        targets = list(PLATFORMS) if args.target == "all" else [args.target]
         for target in targets:
             out = args.output
             if out is None:
@@ -224,17 +216,11 @@ def main(argv: list[str] | None = None) -> int:
                     root,
                     out,
                     plugins=args.plugins,
-                    flat=not args.no_flat,
-                    bundles=not args.no_bundles,
+                    sync_root=False,
+                    flat=args.flat,
                 )
-            elif args.no_flat:
-                paths = []
             else:
-                paths = export_codex(
-                    root,
-                    out,
-                    plugins=args.plugins,
-                )
+                paths = export_codex(root, out, plugins=args.plugins)
             print(f"exported {target} -> {out} ({len(paths)} artifact(s))")
         return 0
 
@@ -243,8 +229,6 @@ def main(argv: list[str] | None = None) -> int:
         write_ingest_report(root, result)
         if result.ingested_skills:
             print(f"ingested skills: {', '.join(result.ingested_skills)}")
-        if result.ingested_plugins:
-            print(f"ingested plugins: {', '.join(result.ingested_plugins)}")
         if result.archived:
             print(f"archived: {', '.join(result.archived)}")
         if result.errors:

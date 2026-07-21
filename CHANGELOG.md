@@ -1,5 +1,23 @@
 # Changelog
 
+## 2.5.0 — 2026-07-21
+
+### Changed
+
+- **Architecture simplification** — unique ingest at `landing/skills/` only;
+  removed `landing/incoming/`.
+- **Claude symmetry** — Claude Code gets committed native plugins under
+  `plugins/claude/`, adapters under `adapters/claude/`, marketplace at
+  `.claude-plugin/marketplace.json`, and the same sync/validate/install path
+  as Cursor and Codex.
+- Core holds portable skills + manifest only; each export path owns scaffolding.
+- CLI: `sync all`, `validate claude`, `skills-install claude --plugins`.
+
+### Removed
+
+- Platform-specific landing incoming paths and Cursor-plugin ingest unpacking.
+- Claude-only bundle export as the primary Claude path.
+
 ## 2.4.0 — 2026-07-19
 
 ### Added

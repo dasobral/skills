@@ -23,6 +23,8 @@ PLATFORMS = {
         "project": [".claude/skills"],
         "user": [Path.home() / ".claude" / "skills"],
         "source": "dist/claude/skills",
+        "fallback_source": "plugins/claude",
+        "plugins_user": Path.home() / ".claude" / "marketplaces" / "dasobral-skills",
     },
     "codex": {
         "project": [".agents/skills"],
@@ -65,11 +67,48 @@ def _install_cursor_plugins(root: Path, target: Path) -> None:
         print(f"installed cursor plugin -> {dst}")
 
 
+def _install_claude_plugins(root: Path, target: Path) -> None:
+    """Install a local Claude marketplace (plugins + marketplace.json)."""
+    src = root / "plugins" / "claude"
+    marketplace_src = root / ".claude-plugin" / "marketplace.json"
+    if not src.is_dir():
+        print(f"Missing {src} — run: ./bin/skills-export sync claude", file=sys.stderr)
+        raise SystemExit(1)
+    if not marketplace_src.is_file():
+        print(
+            f"Missing {marketplace_src} — run: ./bin/skills-export sync claude",
+            file=sys.stderr,
+        )
+        raise SystemExit(1)
+
+    plugins_dst = target / "plugins" / "claude"
+    marketplace_dst = target / ".claude-plugin" / "marketplace.json"
+    plugins_dst.parent.mkdir(parents=True, exist_ok=True)
+    if plugins_dst.exists():
+        shutil.rmtree(plugins_dst)
+    shutil.copytree(src, plugins_dst)
+
+    marketplace_dst.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copy2(marketplace_src, marketplace_dst)
+    print(f"installed claude plugins -> {plugins_dst}")
+    print(f"installed claude marketplace -> {marketplace_dst}")
+    print(f"Add marketplace in Claude Code: /plugin marketplace add {target}")
+
+
 def _install_flat_skills(src: Path, targets: list[Path], platform: str) -> None:
+    def _is_plugin_tree(path: Path) -> bool:
+        if not path.is_dir():
+            return False
+        for child in path.iterdir():
+            if child.is_dir() and (child / "skills").is_dir():
+                return True
+        return False
+
+    plugin_tree = platform in {"cursor", "claude"} and _is_plugin_tree(src)
     for target in targets:
         target = target.expanduser()
         target.mkdir(parents=True, exist_ok=True)
-        if platform == "cursor":
+        if plugin_tree:
             for plugin_dir in src.iterdir():
                 skills = plugin_dir / "skills"
                 if skills.is_dir():
@@ -304,7 +343,7 @@ def main() -> int:
     parser.add_argument(
         "--plugins",
         action="store_true",
-        help="Install full native plugins (Cursor or Codex)",
+        help="Install full native plugins (Cursor, Claude, or Codex)",
     )
     parser.add_argument(
         "--replace-conflicts",
@@ -323,8 +362,8 @@ def main() -> int:
         help="Install to a project directory (default path: current directory)",
     )
     args = parser.parse_args()
-    if args.plugins and args.platform not in {"cursor", "codex"}:
-        parser.error("--plugins is only supported for cursor and codex")
+    if args.plugins and args.platform not in {"cursor", "claude", "codex"}:
+        parser.error("--plugins is only supported for cursor, claude, and codex")
     if args.replace_conflicts and (
         args.platform != "codex" or not args.plugins
     ):
@@ -337,6 +376,12 @@ def main() -> int:
         if not args.user:
             print("--plugins implies --user (Cursor local plugins)", file=sys.stderr)
         _install_cursor_plugins(root, cfg["plugins_user"])
+        return 0
+
+    if args.platform == "claude" and args.plugins:
+        project_root = args.project or Path.cwd()
+        target = cfg["plugins_user"] if args.user else project_root / "claude-marketplace"
+        _install_claude_plugins(root, target)
         return 0
 
     project_root = args.project or Path.cwd()

@@ -9,18 +9,16 @@ from typing import Any
 
 import yaml
 
-from .manifest import (
-    copy_tree,
-    core_skills_dir,
-    cursor_adapter_dir,
-    load_manifest,
-    repo_root,
-)
+from .manifest import core_skills_dir, load_manifest, repo_root
 from .normalize import normalize_skill_dir, validate_skill_dir
 
 
 def landing_dir(root: Path) -> Path:
     return root / "landing"
+
+
+def landing_skills_dir(root: Path) -> Path:
+    return landing_dir(root) / "skills"
 
 
 def load_landing_registry(root: Path) -> dict[str, Any]:
@@ -52,7 +50,6 @@ def read_landing_meta(skill_dir: Path) -> dict[str, Any]:
 @dataclass
 class IngestResult:
     ingested_skills: list[str] = field(default_factory=list)
-    ingested_plugins: list[str] = field(default_factory=list)
     errors: list[str] = field(default_factory=list)
     archived: list[str] = field(default_factory=list)
     dry_run: bool = False
@@ -62,28 +59,16 @@ class IngestResult:
 
 
 def _find_skill_dirs(base: Path) -> list[Path]:
-    """Find skill directories under base (supports nested .claude/skills layouts)."""
-    found: list[Path] = []
+    """Find direct child skill directories under base."""
     if not base.is_dir():
-        return found
-
-    # Direct child with SKILL.md
-    for child in sorted(base.iterdir()):
-        if child.is_dir() and (child / "SKILL.md").is_file():
-            found.append(child)
-
-    # Nested platform layouts
-    for nested in (
-        base / "skills",
-        base / ".claude" / "skills",
-        base / ".agents" / "skills",
-    ):
-        if nested.is_dir():
-            for child in sorted(nested.iterdir()):
-                if child.is_dir() and (child / "SKILL.md").is_file():
-                    found.append(child)
-
-    return found
+        return []
+    return [
+        child
+        for child in sorted(base.iterdir())
+        if child.is_dir()
+        and not child.name.startswith(".")
+        and (child / "SKILL.md").is_file()
+    ]
 
 
 def _assign_skill_to_plugin(
@@ -105,6 +90,9 @@ def _assign_skill_to_plugin(
             entry.setdefault("category", "developer-tools")
             entry.setdefault("keywords", [])
             entry.setdefault("tags", [])
+            # New plugins get all platforms by default; adapters own scaffolding.
+            entry.setdefault("claude", {})
+            entry.setdefault("codex", {"agents": False, "hooks": False})
             manifest["plugins"][plugin] = entry
         else:
             raise KeyError(
@@ -123,7 +111,6 @@ def _ingest_skill_to_core(
     src: Path,
     skill_name: str,
     *,
-    source_platform: str,
     dry_run: bool,
 ) -> None:
     dst = core_skills_dir(root) / skill_name
@@ -132,59 +119,7 @@ def _ingest_skill_to_core(
     if dst.exists():
         shutil.rmtree(dst)
     shutil.copytree(src, dst, ignore=shutil.ignore_patterns("landing.yaml"))
-    normalize_skill_dir(dst, skill_name, source_platform=source_platform)
-
-
-def _ingest_cursor_plugin(
-    root: Path,
-    plugin_src: Path,
-    registry: dict[str, Any],
-    manifest: dict[str, Any],
-    result: IngestResult,
-    *,
-    dry_run: bool,
-) -> None:
-    plugin_name = plugin_src.name
-    skills_src = plugin_src / "skills"
-    if not skills_src.is_dir():
-        result.errors.append(f"cursor plugin '{plugin_name}': missing skills/")
-        return
-
-    adapter_dst = cursor_adapter_dir(root, plugin_name)
-    if not dry_run:
-        adapter_dst.mkdir(parents=True, exist_ok=True)
-
-    for skill_dir in _find_skill_dirs(skills_src):
-        skill_name = skill_dir.name
-        errs = validate_skill_dir(skill_dir, skill_name)
-        if errs:
-            result.errors.extend(errs)
-            continue
-        landing_meta = read_landing_meta(skill_dir)
-        try:
-            plugin = landing_meta.get("plugin") or plugin_name
-            _assign_skill_to_plugin(manifest, registry, skill_name, {"plugin": plugin})
-            _ingest_skill_to_core(
-                root, skill_dir, skill_name, source_platform="cursor", dry_run=dry_run
-            )
-            result.ingested_skills.append(skill_name)
-        except (KeyError, ValueError) as exc:
-            result.errors.append(str(exc))
-
-    if not dry_run:
-        for component in ("agents", "hooks", "rules"):
-            src = plugin_src / component
-            if src.exists():
-                copy_tree(src, adapter_dst / component)
-        plugin_json = plugin_src / ".cursor-plugin" / "plugin.json"
-        if plugin_json.is_file():
-            shutil.copy2(plugin_json, adapter_dst / "plugin.json")
-        readme = plugin_src / "README.md"
-        if readme.is_file():
-            shutil.copy2(readme, adapter_dst / "README.md")
-
-    if plugin_name not in result.ingested_plugins:
-        result.ingested_plugins.append(plugin_name)
+    normalize_skill_dir(dst, skill_name, source_platform="portable")
 
 
 def _archive_path(root: Path) -> Path:
@@ -206,17 +141,18 @@ def _archive_item(
 
 
 def ingest_landing(root: Path | None = None, *, dry_run: bool = False) -> IngestResult:
+    """Ingest portable skills from landing/skills/ into core/.
+
+    Unique ingest path: only landing/skills/<skill>/. Platform scaffolding is
+    never ingested; author it under adapters/<platform>/<plugin>/.
+    """
     root = root or repo_root()
     result = IngestResult(dry_run=dry_run)
     manifest = load_manifest(root)
     registry = load_landing_registry(root)
     archive_base = _archive_path(root)
 
-    # 1. Portable skills: landing/skills/
-    portable_base = landing_dir(root) / "skills"
-    for skill_dir in _find_skill_dirs(portable_base):
-        if skill_dir.name.startswith("."):
-            continue
+    for skill_dir in _find_skill_dirs(landing_skills_dir(root)):
         skill_name = skill_dir.name
         errs = validate_skill_dir(skill_dir, skill_name)
         if errs:
@@ -224,10 +160,8 @@ def ingest_landing(root: Path | None = None, *, dry_run: bool = False) -> Ingest
             continue
         landing_meta = read_landing_meta(skill_dir)
         try:
-            plugin = _assign_skill_to_plugin(manifest, registry, skill_name, landing_meta)
-            _ingest_skill_to_core(
-                root, skill_dir, skill_name, source_platform="portable", dry_run=dry_run
-            )
+            _assign_skill_to_plugin(manifest, registry, skill_name, landing_meta)
+            _ingest_skill_to_core(root, skill_dir, skill_name, dry_run=dry_run)
             result.ingested_skills.append(skill_name)
             rel = _archive_item(root, skill_dir, archive_base / "skills", dry_run=dry_run)
             if rel:
@@ -235,56 +169,7 @@ def ingest_landing(root: Path | None = None, *, dry_run: bool = False) -> Ingest
         except (KeyError, ValueError) as exc:
             result.errors.append(str(exc))
 
-    # 2. Platform incoming: claude, codex (flat skill folders)
-    for platform in ("claude", "codex"):
-        incoming = landing_dir(root) / "incoming" / platform
-        for skill_dir in _find_skill_dirs(incoming):
-            skill_name = skill_dir.name
-            errs = validate_skill_dir(skill_dir, skill_name)
-            if errs:
-                result.errors.extend(errs)
-                continue
-            landing_meta = read_landing_meta(skill_dir)
-            try:
-                _assign_skill_to_plugin(manifest, registry, skill_name, landing_meta)
-                _ingest_skill_to_core(
-                    root, skill_dir, skill_name, source_platform=platform, dry_run=dry_run
-                )
-                result.ingested_skills.append(skill_name)
-                rel = _archive_item(
-                    root, skill_dir, archive_base / "incoming" / platform, dry_run=dry_run
-                )
-                if rel:
-                    result.archived.append(rel)
-            except (KeyError, ValueError) as exc:
-                result.errors.append(str(exc))
-
-    # 3. Cursor plugins: landing/incoming/cursor/<plugin>/
-    cursor_incoming = landing_dir(root) / "incoming" / "cursor"
-    if cursor_incoming.is_dir():
-        for plugin_dir in sorted(cursor_incoming.iterdir()):
-            if not plugin_dir.is_dir() or plugin_dir.name.startswith("."):
-                continue
-            if (plugin_dir / "skills").is_dir() or (plugin_dir / ".cursor-plugin").is_dir():
-                before_errors = len(result.errors)
-                _ingest_cursor_plugin(
-                    root, plugin_dir, registry, manifest, result, dry_run=dry_run
-                )
-                if len(result.errors) == before_errors:
-                    rel = _archive_item(
-                        root,
-                        plugin_dir,
-                        archive_base / "incoming" / "cursor",
-                        dry_run=dry_run,
-                    )
-                    if rel:
-                        result.archived.append(rel)
-
-    if (
-        not dry_run
-        and result.ok()
-        and (result.ingested_skills or result.ingested_plugins)
-    ):
+    if not dry_run and result.ok() and result.ingested_skills:
         save_manifest(root, manifest)
 
     return result
@@ -297,7 +182,6 @@ def write_ingest_report(root: Path, result: IngestResult, path: Path | None = No
         "dry_run": result.dry_run,
         "ok": result.ok(),
         "ingested_skills": result.ingested_skills,
-        "ingested_plugins": result.ingested_plugins,
         "archived": result.archived,
         "errors": result.errors,
     }

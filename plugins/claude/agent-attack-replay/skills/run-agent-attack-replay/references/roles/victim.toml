@@ -1,0 +1,11 @@
+protocol_version = 1
+role = "victim"
+allowed_tools = [
+  "network-request",
+  "read-assigned-fixture",
+  "read-workspace",
+  "write-workspace",
+]
+allowed_input_keys = ["task_fixture", "untrusted_fixture"]
+receives_monitor_context = false
+receives_other_role_inputs = false

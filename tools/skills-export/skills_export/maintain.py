@@ -11,6 +11,7 @@ from .exporters.codex import export_codex, export_codex_plugins
 from .exporters.cursor import export_cursor
 from .ingest import ingest_landing, landing_dir, write_ingest_report
 from .manifest import (
+    claude_plugins_dir,
     codex_plugins_dir,
     cursor_plugins_dir,
     load_manifest,
@@ -18,8 +19,12 @@ from .manifest import (
     repo_root,
 )
 from .validate import validate_core
+from .validate_claude import validate_claude_plugins
 from .validate_codex import validate_codex_plugins
 from .validate_cursor import validate_cursor_plugins
+
+
+PLATFORMS = ("cursor", "claude", "codex")
 
 
 @dataclass
@@ -35,6 +40,33 @@ class MaintainResult:
         return not self.ingest_errors and not self.validate_errors
 
 
+def _sync_platform(
+    root: Path,
+    platform: str,
+    *,
+    plugins: list[str] | None,
+) -> list[Path]:
+    if platform == "cursor":
+        return export_cursor(
+            root, cursor_plugins_dir(root), plugins=plugins, sync_root=True
+        )
+    if platform == "claude":
+        return export_claude(
+            root, claude_plugins_dir(root), plugins=plugins, sync_root=True
+        )
+    return export_codex_plugins(root, codex_plugins_dir(root), plugins=plugins)
+
+
+def _validate_platform(root: Path, platform: str) -> list[str]:
+    if platform == "cursor":
+        issues = validate_cursor_plugins(root)
+    elif platform == "claude":
+        issues = validate_claude_plugins(root)
+    else:
+        issues = validate_codex_plugins(root)
+    return [f"{issue.path}: {issue.message}" for issue in issues]
+
+
 def maintain(
     root: Path | None = None,
     *,
@@ -43,7 +75,7 @@ def maintain(
     skip_export: bool = False,
     plugins: list[str] | None = None,
 ) -> MaintainResult:
-    """Full autonomous pipeline: landing → core → all platforms."""
+    """Full pipeline: landing → core → sync all platforms."""
     root = root or repo_root()
     result = MaintainResult(dry_run=dry_run)
 
@@ -61,48 +93,32 @@ def maintain(
         return result
 
     if not skip_export:
-        cursor_out = cursor_plugins_dir(root)
-        codex_native_out = codex_plugins_dir(root)
-        claude_out = root / "dist" / "claude"
-        codex_flat_out = root / "dist" / "codex"
-        result.exports = {
-            "cursor": str(cursor_out),
-            "codex": str(codex_native_out),
-            "claude": str(claude_out),
-            "codex-flat": str(codex_flat_out),
-        }
         manifest = load_manifest(root)
-        cursor_names = platform_plugin_names(manifest, "cursor")
-        codex_names = list(manifest["plugins"])
-        if plugins is not None:
-            cursor_names = [name for name in plugins if name in cursor_names]
-            codex_names = [name for name in plugins if name in codex_names]
-        result.export_counts = {
-            "cursor": len(cursor_names),
-            "codex": len(codex_names),
+        result.exports = {
+            "cursor": str(cursor_plugins_dir(root)),
+            "claude": str(claude_plugins_dir(root)),
+            "codex": str(codex_plugins_dir(root)),
         }
+        for platform in PLATFORMS:
+            names = platform_plugin_names(manifest, platform)
+            if plugins is not None:
+                names = [name for name in plugins if name in names]
+            result.export_counts[platform] = len(names)
 
         if dry_run:
             return result
 
-        export_cursor(root, cursor_out, plugins=plugins, sync_root=True)
-        export_codex_plugins(root, codex_native_out, plugins=plugins)
+        for platform in PLATFORMS:
+            _sync_platform(root, platform, plugins=plugins)
 
-        cursor_issues = validate_cursor_plugins(root)
-        codex_issues = validate_codex_plugins(root)
-        if cursor_issues or codex_issues:
-            result.validate_errors.extend(
-                f"{issue.path}: {issue.message}"
-                for issue in [*cursor_issues, *codex_issues]
-            )
-            return result
+        for platform in PLATFORMS:
+            result.validate_errors.extend(_validate_platform(root, platform))
+            if result.validate_errors:
+                return result
 
-        export_claude(root, claude_out, plugins=plugins)
-        export_codex(
-            root,
-            flat_output_dir=codex_flat_out,
-            plugins=plugins,
-        )
+        # Optional flat compatibility exports (not the primary path).
+        export_claude(root, root / "dist" / "claude", plugins=plugins, flat=True)
+        export_codex(root, flat_output_dir=root / "dist" / "codex", plugins=plugins)
 
     if dry_run:
         return result

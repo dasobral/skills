@@ -364,8 +364,8 @@
     <header class="hero">
       <h1 class="brand">Portable Skills <span>Framework</span></h1>
       <p class="lede">
-        One portable core. Drop skills into <code>landing/</code>, run maintain
-        (or cron), and export to Cursor plugins plus Claude/Codex bundles —
+        One portable core. Drop skills into <code>landing/skills/</code>, run
+        maintain, and sync native plugins for Cursor, Claude Code, and Codex —
         without copy-paste migration.
       </p>
       <div class="tabs" role="tablist" aria-label="Views">
@@ -382,8 +382,8 @@
           <article class="card landing">
             <div class="badge"><span class="dot"></span> Ingest</div>
             <h3>Landing zone</h3>
-            <p>Portable, Claude, Codex, or Cursor drops. Assigned via <code>registry.yaml</code>.</p>
-            <span class="path">landing/skills · incoming/*</span>
+            <p>Portable Agent Skills only. Assigned via <code>registry.yaml</code>.</p>
+            <span class="path">landing/skills/</span>
           </article>
           <div class="arrow" aria-hidden="true">→</div>
           <article class="card core">
@@ -411,17 +411,17 @@
           </article>
           <article class="card claude">
             <div class="badge"><span class="dot"></span> Export · Claude</div>
-            <h3>Skill bundles</h3>
-            <p>Flat <code>.claude/skills/</code> layout for Claude Code install.</p>
-            <span class="path">dist/claude/</span>
-            <div class="generated">Generated on maintain</div>
+            <h3>Ready plugins</h3>
+            <p>Native <code>.claude-plugin/</code> plugins from core + adapters.</p>
+            <span class="path">plugins/claude/&lt;plugin&gt;/</span>
+            <div class="ready">Ready today</div>
           </article>
           <article class="card codex">
             <div class="badge"><span class="dot"></span> Export · Codex</div>
-            <h3>Agent skills</h3>
-            <p>Flat <code>.agents/skills/</code> (or user Codex) bundles.</p>
-            <span class="path">dist/codex/</span>
-            <div class="generated">Generated on maintain</div>
+            <h3>Ready plugins</h3>
+            <p>Native <code>.codex-plugin/</code> plugins from core + adapters.</p>
+            <span class="path">plugins/codex/&lt;plugin&gt;/</span>
+            <div class="ready">Ready today</div>
           </article>
         </div>
       </div>
@@ -433,20 +433,19 @@
         <article class="card" style="--tone: var(--cursor)">
           <div class="badge"><span class="dot"></span> Cursor-first tree</div>
           <h3>What lives where</h3>
-          <pre class="tree"><span class="dim">core/</span>                 <span class="dim">← source of truth</span>
-<span class="dim">landing/</span>              <span class="dim">← drop zone</span>
-<span class="dim">adapters/cursor/</span>      <span class="dim">← agents · hooks · rules</span>
-<span class="hi">plugins/cursor/</span>       <span class="hi">← ready Cursor plugins</span>
-<span class="dim">dist/claude|codex/</span>    <span class="dim">← generated (gitignored)</span>
+          <pre class="tree"><span class="dim">core/</span>                 <span class="dim">← portable source of truth</span>
+<span class="dim">landing/skills/</span>       <span class="dim">← unique ingest</span>
+<span class="dim">adapters/{cursor,claude,codex}/</span>
+<span class="hi">plugins/{cursor,claude,codex}/</span>
 <span class="dim">scripts/cron/</span>         <span class="dim">← install · wrapper · uninstall</span>
 <span class="dim">tools/skills-export/</span>  <span class="dim">← CLI</span></pre>
         </article>
         <article class="card" style="--tone: var(--accent-2)">
           <div class="badge"><span class="dot"></span> Why reorganize</div>
-          <h3>Root stays framework</h3>
-          <p>Only Cursor plugins are ready to use today. Keeping them under <code>plugins/cursor/</code> makes the repo read as a unified framework, not six top-level products mixed with tooling.</p>
-          <p style="margin-top:0.7rem">Marketplace sources: <code>plugins/cursor/&lt;name&gt;</code></p>
-          <span class="path">./bin/skills-export sync cursor</span>
+          <h3>Three equal export paths</h3>
+          <p>Cursor, Claude, and Codex each own scaffolding under <code>adapters/</code> and generate committed plugins under <code>plugins/</code>. Core never holds platform scaffolding.</p>
+          <p style="margin-top:0.7rem">Sync all: <code>./bin/skills-export sync all</code></p>
+          <span class="path">./bin/skills-maintain</span>
         </article>
       </div>
     </section>

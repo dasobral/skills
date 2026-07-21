@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://dasobral.example/schemas/numerical-equivalence-result.schema.json",
+  "title": "Numerical equivalence result",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["reference_run_id", "candidate_run_id", "metric", "observed", "absolute_tolerance", "relative_tolerance", "evidence_state"],
+  "properties": {
+    "reference_run_id": {"type": "string", "minLength": 1},
+    "candidate_run_id": {"type": "string", "minLength": 1},
+    "metric": {"type": "string", "minLength": 1},
+    "observed": {"type": "number"},
+    "absolute_tolerance": {"type": "number", "minimum": 0},
+    "relative_tolerance": {"type": "number", "minimum": 0},
+    "evidence_state": {"enum": ["pass", "fail", "unknown", "not-applicable", "evidence-gap"]}
+  }
+}

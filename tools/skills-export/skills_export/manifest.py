@@ -38,12 +38,28 @@ def cursor_plugins_dir(root: Path) -> Path:
     return root / "plugins" / "cursor"
 
 
+def claude_adapter_dir(root: Path, plugin: str) -> Path:
+    return root / "adapters" / "claude" / plugin
+
+
+def claude_plugins_dir(root: Path) -> Path:
+    return root / "plugins" / "claude"
+
+
 def codex_adapter_dir(root: Path, plugin_name: str) -> Path:
     return root / "adapters" / "codex" / plugin_name
 
 
 def codex_plugins_dir(root: Path) -> Path:
     return root / "plugins" / "codex"
+
+
+def adapter_dir(root: Path, platform: str, plugin: str) -> Path:
+    return root / "adapters" / platform / plugin
+
+
+def plugins_dir(root: Path, platform: str) -> Path:
+    return root / "plugins" / platform
 
 
 def plugin_skill_names(manifest: dict[str, Any], plugin: str) -> list[str]:

@@ -347,20 +347,35 @@ def test_user_plugin_install_explicitly_replaces_conflicting_source_safely(
     assert (home / "plugins" / "codex" / "codecraft").is_dir()
 
 
-def test_claude_rejects_native_plugin_mode(
+def test_claude_native_plugin_install_writes_local_marketplace(
     repo_copy: Path,
     tmp_path: Path,
 ) -> None:
+    from skills_export.exporters.claude import export_claude
+
+    export_claude(repo_copy, sync_root=True, plugins=["career-writer"])
+    home = tmp_path / "home"
+
     completed = _run_installer(
         repo_copy,
         "claude",
         "--plugins",
         "--user",
-        home=tmp_path / "home",
+        home=home,
     )
 
-    assert completed.returncode == 2
-    assert "--plugins is only supported for cursor and codex" in completed.stderr
+    assert completed.returncode == 0, completed.stderr
+    marketplace_root = home / ".claude" / "marketplaces" / "dasobral-skills"
+    assert (
+        marketplace_root
+        / "plugins"
+        / "claude"
+        / "career-writer"
+        / ".claude-plugin"
+        / "plugin.json"
+    ).is_file()
+    assert (marketplace_root / ".claude-plugin" / "marketplace.json").is_file()
+    assert "marketplace add" in completed.stdout.lower()
 
 
 def test_cursor_rejects_codex_conflict_replacement_policy(

@@ -36,6 +36,28 @@ def test_sync_codex_writes_native_plugins_and_marketplace(
     assert _files(repo_copy / "plugins" / "cursor") == cursor_before
 
 
+def test_sync_claude_writes_native_plugins_and_marketplace(
+    repo_copy: Path,
+) -> None:
+    assert main(["--root", str(repo_copy), "sync", "claude"]) == 0
+
+    assert (
+        repo_copy
+        / "plugins"
+        / "claude"
+        / "codecraft"
+        / ".claude-plugin"
+        / "plugin.json"
+    ).is_file()
+    assert (
+        repo_copy / "plugins" / "claude" / "codecraft" / "skills" / "analyze-codebase"
+    ).is_dir()
+    marketplace = repo_copy / ".claude-plugin" / "marketplace.json"
+    assert marketplace.is_file()
+    text = marketplace.read_text(encoding="utf-8")
+    assert '"./plugins/claude/codecraft"' in text
+
+
 def test_export_codex_writes_only_selected_flat_skills(repo_copy: Path) -> None:
     output = repo_copy / "flat-output"
 
@@ -84,6 +106,28 @@ def test_validate_codex_checks_generated_output(
     assert "plugin manifest is missing skills" in capsys.readouterr().err
 
 
+def test_validate_claude_checks_generated_output(
+    repo_copy: Path,
+    capsys,
+) -> None:
+    assert main(["--root", str(repo_copy), "sync", "claude"]) == 0
+    assert main(["--root", str(repo_copy), "validate", "claude"]) == 0
+    assert "Claude validation OK" in capsys.readouterr().out
+
+    plugin_json = (
+        repo_copy
+        / "plugins"
+        / "claude"
+        / "codecraft"
+        / ".claude-plugin"
+        / "plugin.json"
+    )
+    plugin_json.write_text("{}\n", encoding="utf-8")
+
+    assert main(["--root", str(repo_copy), "validate", "claude"]) == 1
+    assert "plugin manifest is missing skills" in capsys.readouterr().err
+
+
 def test_default_validate_includes_existing_codex_output(
     repo_copy: Path,
 ) -> None:
@@ -107,10 +151,11 @@ def test_maintain_dry_run_reports_all_targets_without_writes(
 
     result = maintain(repo_copy, dry_run=True, skip_ingest=True)
 
-    assert list(result.exports) == ["cursor", "codex", "claude", "codex-flat"]
+    assert list(result.exports) == ["cursor", "claude", "codex"]
     assert result.exports["cursor"] == str(repo_copy / "plugins" / "cursor")
+    assert result.exports["claude"] == str(repo_copy / "plugins" / "claude")
     assert result.exports["codex"] == str(repo_copy / "plugins" / "codex")
-    assert result.export_counts == {"cursor": 6, "codex": 11}
+    assert result.export_counts == {"cursor": 6, "claude": 11, "codex": 11}
     assert _files(repo_copy) == before
 
 
@@ -144,6 +189,7 @@ def test_maintain_dry_run_reports_platform_plugin_counts(
 
     output = capsys.readouterr().out
     assert "would export cursor (6 plugins)" in output
+    assert "would export claude (11 plugins)" in output
     assert "would export codex (11 plugins)" in output
 
 
@@ -167,8 +213,14 @@ def test_maintain_runs_native_sync_before_flat_exports(
         "load_manifest",
         lambda _root: {
             "plugins": {
-                **{f"cursor-{index}": {"cursor": {}} for index in range(6)},
-                **{f"codex-{index}": {} for index in range(5)},
+                **{
+                    f"shared-{index}": {"cursor": {}, "claude": {}, "codex": {}}
+                    for index in range(6)
+                },
+                **{
+                    f"claude-codex-{index}": {"claude": {}, "codex": {}}
+                    for index in range(5)
+                },
             }
         },
     )
@@ -189,13 +241,13 @@ def test_maintain_runs_native_sync_before_flat_exports(
     )
     monkeypatch.setattr(
         maintain_module,
-        "validate_codex_plugins",
-        lambda _root: calls.append("validate-codex") or [],
+        "validate_claude_plugins",
+        lambda _root: calls.append("validate-claude") or [],
     )
     monkeypatch.setattr(
         maintain_module,
-        "export_claude",
-        lambda *_args, **_kwargs: calls.append("export-claude") or [],
+        "validate_codex_plugins",
+        lambda _root: calls.append("validate-codex") or [],
     )
     monkeypatch.setattr(
         maintain_module,
@@ -203,16 +255,27 @@ def test_maintain_runs_native_sync_before_flat_exports(
         lambda *_args, **_kwargs: calls.append("export-codex-flat") or [],
     )
 
+    def _claude(*_args, **kwargs):
+        if kwargs.get("flat"):
+            calls.append("export-claude-flat")
+            return []
+        calls.append("sync-claude")
+        return []
+
+    monkeypatch.setattr(maintain_module, "export_claude", _claude)
+
     result = maintain_module.maintain(root, skip_ingest=True)
 
     assert result.ok()
     assert calls == [
         "validate-core",
         "sync-cursor",
+        "sync-claude",
         "sync-codex",
         "validate-cursor",
+        "validate-claude",
         "validate-codex",
-        "export-claude",
+        "export-claude-flat",
         "export-codex-flat",
     ]
 
@@ -233,10 +296,10 @@ def test_export_codex_api_honors_plugin_filter_for_flat_output(
     } == {"career-documents"}
 
 
-def test_export_all_no_flat_keeps_cursor_and_claude_bundles(
+def test_export_all_writes_native_shaped_claude_plugins(
     repo_copy: Path,
 ) -> None:
-    output = repo_copy / "all-no-flat"
+    output = repo_copy / "all-out"
 
     assert main(
         [
@@ -244,7 +307,6 @@ def test_export_all_no_flat_keeps_cursor_and_claude_bundles(
             str(repo_copy),
             "export",
             "all",
-            "--no-flat",
             "--plugin",
             "career-writer",
             "--output",
@@ -256,38 +318,32 @@ def test_export_all_no_flat_keeps_cursor_and_claude_bundles(
         output / "cursor" / "career-writer" / ".cursor-plugin" / "plugin.json"
     ).is_file()
     assert (
-        output / "claude" / "bundles" / "career-writer" / "bundle.json"
+        output / "claude" / "career-writer" / ".claude-plugin" / "plugin.json"
     ).is_file()
-    assert not (output / "claude" / "skills").exists()
-    assert not (output / "codex").exists()
-
-
-def test_export_all_no_bundles_keeps_cursor_and_flat_exports(
-    repo_copy: Path,
-) -> None:
-    output = repo_copy / "all-no-bundles"
-
-    assert main(
-        [
-            "--root",
-            str(repo_copy),
-            "export",
-            "all",
-            "--no-bundles",
-            "--plugin",
-            "career-writer",
-            "--output",
-            str(output),
-        ]
-    ) == 0
-
     assert (
-        output / "cursor" / "career-writer" / ".cursor-plugin" / "plugin.json"
-    ).is_file()
-    assert not (output / "claude" / "bundles").exists()
-    assert (
-        output / "claude" / "skills" / "career-documents" / "SKILL.md"
+        output / "claude" / "career-writer" / "skills" / "career-documents" / "SKILL.md"
     ).is_file()
     assert (
         output / "codex" / "skills" / "career-documents" / "SKILL.md"
     ).is_file()
+
+
+def test_export_claude_flat_flag_adds_skills_tree(repo_copy: Path) -> None:
+    output = repo_copy / "claude-flat"
+
+    assert main(
+        [
+            "--root",
+            str(repo_copy),
+            "export",
+            "claude",
+            "--flat",
+            "--plugin",
+            "career-writer",
+            "--output",
+            str(output),
+        ]
+    ) == 0
+
+    assert (output / "career-writer" / ".claude-plugin" / "plugin.json").is_file()
+    assert (output / "skills" / "career-documents" / "SKILL.md").is_file()

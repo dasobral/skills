@@ -723,7 +723,7 @@ def test_codex_export_rejects_no_artifact_request(repo_copy: Path) -> None:
         export_codex(repo_copy, flat=False, native=False)
 
 
-def test_codex_cli_no_flat_skips_codex_artifact(repo_copy: Path) -> None:
+def test_codex_cli_export_writes_flat_skills(repo_copy: Path) -> None:
     from skills_export.cli import main
 
     assert main(
@@ -732,23 +732,6 @@ def test_codex_cli_no_flat_skips_codex_artifact(repo_copy: Path) -> None:
             str(repo_copy),
             "export",
             "codex",
-            "--no-flat",
-        ]
-    ) == 0
-
-    assert not (repo_copy / "dist" / "codex").exists()
-
-
-def test_codex_cli_no_bundles_keeps_flat_export(repo_copy: Path) -> None:
-    from skills_export.cli import main
-
-    assert main(
-        [
-            "--root",
-            str(repo_copy),
-            "export",
-            "codex",
-            "--no-bundles",
             "--plugin",
             "career-writer",
         ]
