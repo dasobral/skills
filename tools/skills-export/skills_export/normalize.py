@@ -44,14 +44,7 @@ _CURSOR_PATH_PRIORITY = [
 
 
 def detect_platform(skill_dir: Path) -> str:
-    """Guess source platform from skill content or parent path."""
-    path_str = str(skill_dir).lower()
-    if "incoming/cursor" in path_str or ".cursor-plugin" in path_str:
-        return "cursor"
-    if "incoming/claude" in path_str or "/.claude/" in path_str:
-        return "claude"
-    if "incoming/codex" in path_str or "/.agents/" in path_str:
-        return "codex"
+    """Guess source platform from skill content (for normalize metadata only)."""
     skill_md = skill_dir / "SKILL.md"
     if skill_md.is_file():
         text = skill_md.read_text(encoding="utf-8").lower()
@@ -59,6 +52,8 @@ def detect_platform(skill_dir: Path) -> str:
             return "cursor"
         if "allowed-tools:" in text and "claude" in text:
             return "claude"
+        if ".agents/skills" in text or "codex" in text and "plugin" in text:
+            return "codex"
     return "portable"
 
 

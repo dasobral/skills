@@ -2245,7 +2245,7 @@ def test_agent_security_plugins_export_and_validate(repo_copy: Path) -> None:
         yaml.safe_dump(manifest, sort_keys=False), encoding="utf-8"
     )
 
-    exported = export_codex_plugins(repo_copy)
+    exported = export_codex_plugins(repo_copy, repo_copy / "dist" / "codex")
     export_codex_marketplace(repo_copy)
 
     assert {path.name for path in exported} == set(plugin_names)

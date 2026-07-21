@@ -14,7 +14,6 @@ import pytest
 import skills_export.agent_installer as installer
 from skills_export.agent_installer import install_agent_templates
 from skills_export.exporters.codex import export_codex_plugin
-from test_codex_export import _write_codex_overlay
 
 
 def _source(tmp_path: Path, *, two: bool = False) -> Path:
@@ -283,9 +282,8 @@ def test_shared_setup_skill_requires_preview_and_confirmation() -> None:
 def test_generated_setup_script_installs_agents_end_to_end(
     repo_copy: Path,
 ) -> None:
-    _write_codex_overlay(repo_copy)
     plugin = export_codex_plugin(
-        repo_copy, "codecraft", repo_copy / "plugins" / "codex"
+        repo_copy, "codecraft", repo_copy / "dist" / "codex"
     )
     project = repo_copy / "project"
     project.mkdir()

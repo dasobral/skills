@@ -40,6 +40,7 @@ plugins:
     codex:
       agents: true
       hooks: true
+    claude: {}
   cpp-qkd-toolkit:
     display_name: C++ QKD Toolkit
     version: 2.1.0
@@ -70,11 +71,12 @@ plugins:
     codex:
       agents: true
       hooks: true
+    claude: {}
   agent-platform:
     display_name: Agent Platform
     version: 2.2.0
-    description: 'Rewrite instructions with Agent STE, create agent definitions,
-      and orchestrate multi-agent pipelines.
+    description: 'Rewrite instructions with Agent STE, create agent definitions, and
+      orchestrate multi-agent pipelines.
 
       '
     category: developer-tools
@@ -100,6 +102,7 @@ plugins:
     codex:
       agents: true
       hooks: false
+    claude: {}
   aos-stack:
     display_name: AOS Stack
     version: 2.1.0
@@ -128,6 +131,7 @@ plugins:
     codex:
       agents: true
       hooks: true
+    claude: {}
   scientific-computing:
     display_name: Scientific Computing
     version: 2.1.0
@@ -152,6 +156,7 @@ plugins:
     codex:
       agents: true
       hooks: false
+    claude: {}
   career-writer:
     display_name: Career Writer
     version: 2.1.0
@@ -176,6 +181,7 @@ plugins:
     codex:
       agents: true
       hooks: false
+    claude: {}
   agentic-trust-gate:
     display_name: Agentic Trust Gate
     version: 0.1.0
@@ -196,6 +202,7 @@ plugins:
     codex:
       agents: true
       hooks: true
+    claude: {}
   agent-attack-replay:
     display_name: Agent Attack Replay
     version: 0.1.0
@@ -217,6 +224,7 @@ plugins:
     codex:
       agents: true
       hooks: true
+    claude: {}
   crypto-change-radar:
     display_name: Crypto Change Radar
     version: 0.1.0
@@ -240,6 +248,7 @@ plugins:
     codex:
       agents: true
       hooks: true
+    claude: {}
   entropy-flight-recorder:
     display_name: Entropy Flight Recorder
     version: 0.1.0
@@ -260,6 +269,7 @@ plugins:
     codex:
       agents: true
       hooks: true
+    claude: {}
   scientific-claim-ledger:
     display_name: Scientific Claim Ledger
     version: 0.1.0
@@ -282,3 +292,4 @@ plugins:
     codex:
       agents: true
       hooks: true
+    claude: {}

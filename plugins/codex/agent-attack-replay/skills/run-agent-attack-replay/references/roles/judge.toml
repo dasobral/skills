@@ -1,6 +1,0 @@
-protocol_version = 1
-role = "judge"
-allowed_tools = []
-allowed_input_keys = ["receives"]
-receives_monitor_context = true
-receives_other_role_inputs = false

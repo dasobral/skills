@@ -1,5 +1,23 @@
 # Changelog
 
+## 2.5.0 — 2026-07-21
+
+### Changed
+
+- **Ruthless simplification** — generated `plugins/`, marketplaces, and
+  overview artifacts are no longer committed. Source of truth is `core/` +
+  `adapters/` only. Assemble into gitignored `dist/` on demand; install
+  builds from core+adapters.
+- Unique ingest at `landing/skills/`.
+- One assembler for Cursor / Claude / Codex; thin CLI.
+
+### Removed
+
+- Committed `plugins/{cursor,claude,codex}/` trees (duplicated every skill).
+- Committed marketplace JSON files.
+- `landing/incoming/`, Claude-only bundle path, heavy platform validators,
+  cursor regression hash fixtures.
+
 ## 2.4.0 — 2026-07-19
 
 ### Added

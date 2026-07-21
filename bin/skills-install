@@ -1,38 +1,15 @@
 #!/usr/bin/env python3
-"""Install exported bundles into standard platform paths (project or user)."""
+"""Install skills/plugins by assembling core + adapters into platform paths."""
 from __future__ import annotations
 
 import argparse
-import json
 import os
 import shutil
 import sys
 import tempfile
 from pathlib import Path
 
-PLATFORMS = {
-    "cursor": {
-        # Flat skills from dist/cursor (after export) or plugins/cursor skills
-        "project": [".cursor/skills"],
-        "user": [Path.home() / ".cursor" / "skills"],
-        "source": "dist/cursor",
-        "fallback_source": "plugins/cursor",
-        "plugins_user": Path.home() / ".cursor" / "plugins" / "local",
-    },
-    "claude": {
-        "project": [".claude/skills"],
-        "user": [Path.home() / ".claude" / "skills"],
-        "source": "dist/claude/skills",
-    },
-    "codex": {
-        "project": [".agents/skills"],
-        "user": [
-            Path.home() / ".codex" / "skills",
-            Path.home() / ".agents" / "skills",
-        ],
-        "source": "dist/codex/skills",
-    },
-}
+ROOT_HINT = "core/manifest.yaml"
 
 
 def find_root() -> Path:
@@ -40,328 +17,161 @@ def find_root() -> Path:
     for candidate in [path, *path.parents]:
         if (candidate / "core" / "manifest.yaml").is_file():
             return candidate
-    raise SystemExit("Run from skills repo root (core/manifest.yaml not found)")
+    raise SystemExit(f"Run from skills repo root ({ROOT_HINT} not found)")
 
 
-def _install_cursor_plugins(root: Path, target: Path) -> None:
-    """Copy full Cursor plugins into ~/.cursor/plugins/local/."""
-    src = root / "plugins" / "cursor"
-    if not src.is_dir():
-        print(f"Missing {src} — run: ./bin/skills-export sync cursor", file=sys.stderr)
-        raise SystemExit(1)
-    target.mkdir(parents=True, exist_ok=True)
-    for plugin_dir in sorted(src.iterdir()):
-        if not plugin_dir.is_dir() or plugin_dir.name.startswith("."):
-            continue
-        if not (plugin_dir / ".cursor-plugin").is_dir():
-            continue
-        dst = target / plugin_dir.name
-        if dst.exists() or dst.is_symlink():
-            if dst.is_symlink() or dst.is_file():
-                dst.unlink()
-            else:
-                shutil.rmtree(dst)
-        shutil.copytree(plugin_dir, dst)
-        print(f"installed cursor plugin -> {dst}")
+def _assemble(root: Path, platform: str, dest: Path, plugins: list[str] | None = None) -> None:
+    sys.path.insert(0, str(root / "tools" / "skills-export"))
+    from skills_export.assemble import export_platform
+
+    if dest.exists():
+        shutil.rmtree(dest)
+    dest.mkdir(parents=True, exist_ok=True)
+    export_platform(root, platform, dest, plugins=plugins)
 
 
-def _install_flat_skills(src: Path, targets: list[Path], platform: str) -> None:
+def _install_flat_from_plugins(plugin_tree: Path, targets: list[Path]) -> None:
     for target in targets:
         target = target.expanduser()
         target.mkdir(parents=True, exist_ok=True)
-        if platform == "cursor":
-            for plugin_dir in src.iterdir():
-                skills = plugin_dir / "skills"
-                if skills.is_dir():
-                    for skill in skills.iterdir():
-                        if skill.is_dir():
-                            dst = target / skill.name
-                            if dst.exists():
-                                shutil.rmtree(dst)
-                            shutil.copytree(skill, dst)
-        else:
-            for skill in src.iterdir():
-                if skill.is_dir():
+        for plugin_dir in sorted(plugin_tree.iterdir()):
+            skills = plugin_dir / "skills"
+            if not skills.is_dir():
+                continue
+            for skill in skills.iterdir():
+                if skill.is_dir() and (skill / "SKILL.md").is_file():
                     dst = target / skill.name
                     if dst.exists():
                         shutil.rmtree(dst)
                     shutil.copytree(skill, dst)
-        print(f"installed {platform} skills -> {target}")
+        print(f"installed skills -> {target}")
 
 
-def _require_safe_tree(path: Path, *, label: str) -> None:
-    if path.is_symlink():
-        raise ValueError(f"{label} must not be a symlink: {path}")
-    if not path.is_dir():
-        raise ValueError(f"{label} is missing: {path}")
-    for child in path.rglob("*"):
-        if child.is_symlink():
-            raise ValueError(f"{label} contains a symlink: {child}")
+def _install_cursor_plugins(root: Path, target: Path) -> None:
+    with tempfile.TemporaryDirectory(prefix="skills-cursor-") as tmp:
+        assembled = Path(tmp) / "out"
+        _assemble(root, "cursor", assembled)
+        target.mkdir(parents=True, exist_ok=True)
+        for plugin_dir in assembled.iterdir():
+            if not plugin_dir.is_dir() or plugin_dir.name.startswith("."):
+                continue
+            if not (plugin_dir / ".cursor-plugin").is_dir():
+                continue
+            dst = target / plugin_dir.name
+            if dst.exists():
+                shutil.rmtree(dst)
+            shutil.copytree(plugin_dir, dst)
+            print(f"installed cursor plugin -> {dst}")
 
 
-def _require_safe_destination(scope_root: Path, destination: Path) -> None:
-    root = scope_root.absolute()
-    target = destination.absolute()
-    try:
-        relative = target.relative_to(root)
-    except ValueError as exc:
-        raise ValueError(f"Native plugin destination escapes scope: {target}") from exc
-    current = root
-    if current.is_symlink():
-        raise ValueError(f"Native plugin scope must not be a symlink: {current}")
-    for part in relative.parts:
-        current /= part
-        if current.is_symlink():
-            raise ValueError(
-                f"Native plugin destination must not traverse a symlink: {current}"
-            )
+def _install_claude_marketplace(root: Path, target: Path) -> None:
+    with tempfile.TemporaryDirectory(prefix="skills-claude-") as tmp:
+        assembled = Path(tmp) / "out"
+        _assemble(root, "claude", assembled)
+        plugins_dst = target / "plugins" / "claude"
+        if target.exists():
+            shutil.rmtree(target)
+        plugins_dst.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copytree(assembled, plugins_dst)
+        # Rewrite marketplace sources for installed layout
+        import json
+
+        market_src = plugins_dst / ".claude-plugin" / "marketplace.json"
+        if market_src.is_file():
+            data = json.loads(market_src.read_text(encoding="utf-8"))
+            for entry in data.get("plugins", []):
+                entry["source"] = f"./plugins/claude/{entry['name']}"
+            market_dst = target / ".claude-plugin" / "marketplace.json"
+            market_dst.parent.mkdir(parents=True, exist_ok=True)
+            market_dst.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
+            # remove nested marketplace from plugins copy
+            shutil.rmtree(plugins_dst / ".claude-plugin", ignore_errors=True)
+        print(f"installed claude marketplace -> {target}")
+        print(f"In Claude Code: /plugin marketplace add {target}")
 
 
-def _load_native_marketplace(
-    root: Path,
-) -> tuple[Path, dict[str, object], list[Path]]:
-    _require_safe_tree(root / ".agents", label="Codex marketplace source")
-    _require_safe_tree(
-        root / "plugins" / "codex",
-        label="Codex plugins source",
-    )
-    marketplace = root / ".agents" / "plugins" / "marketplace.json"
-    if marketplace.is_symlink() or not marketplace.is_file():
-        raise ValueError(
-            f"Missing safe Codex marketplace {marketplace} — "
-            "run: ./bin/skills-export sync codex"
-        )
-    try:
-        data = json.loads(marketplace.read_text(encoding="utf-8"))
-    except (OSError, UnicodeError, json.JSONDecodeError) as exc:
-        raise ValueError(f"Invalid Codex marketplace: {exc}") from exc
-    entries = data.get("plugins") if isinstance(data, dict) else None
-    if not isinstance(entries, list) or not entries:
-        raise ValueError("Invalid Codex marketplace: plugins must be a non-empty list")
+def _install_codex_plugins(root: Path, scope_root: Path) -> None:
+    import json
 
-    sources: list[Path] = []
-    seen: set[str] = set()
-    for entry in entries:
-        name = entry.get("name") if isinstance(entry, dict) else None
-        source = entry.get("source") if isinstance(entry, dict) else None
-        raw = source.get("path") if isinstance(source, dict) else None
-        expected = f"./plugins/codex/{name}"
-        if (
-            not isinstance(name, str)
-            or not name
-            or name in seen
-            or not isinstance(source, dict)
-            or source.get("source") != "local"
-            or raw != expected
-            or Path(raw).is_absolute()
-            or ".." in Path(raw).parts
-        ):
-            raise ValueError(f"Invalid Codex marketplace plugin entry: {entry!r}")
-        seen.add(name)
-        plugin = root / "plugins" / "codex" / name
-        _require_safe_tree(plugin, label=f"Codex plugin '{name}'")
-        if not (plugin / ".codex-plugin" / "plugin.json").is_file():
-            raise ValueError(f"Codex plugin '{name}' is missing plugin.json")
-        sources.append(plugin)
-    return marketplace, data, sources
-
-
-def _merged_marketplace(
-    source: dict[str, object],
-    destination: Path,
-    *,
-    replace_conflicts: bool,
-) -> dict[str, object]:
-    if not destination.exists():
-        return source
-    try:
-        existing = json.loads(destination.read_text(encoding="utf-8"))
-    except (OSError, UnicodeError, json.JSONDecodeError) as exc:
-        raise ValueError(f"Invalid existing Codex marketplace: {exc}") from exc
-    if not isinstance(existing, dict) or not isinstance(existing.get("plugins"), list):
-        raise ValueError("Invalid existing Codex marketplace: plugins must be a list")
-    incoming_entries = source["plugins"]
-    if not isinstance(incoming_entries, list):
-        raise ValueError("Invalid bundled Codex marketplace")
-
-    existing_entries = existing["plugins"]
-    by_name: dict[str, tuple[int, dict[str, object]]] = {}
-    for index, entry in enumerate(existing_entries):
-        name = entry.get("name") if isinstance(entry, dict) else None
-        if not isinstance(name, str) or not name or name in by_name:
-            raise ValueError(
-                "Invalid existing Codex marketplace: plugin names must be unique"
-            )
-        by_name[name] = (index, entry)
-
-    merged_entries = list(existing_entries)
-    for incoming in incoming_entries:
-        if not isinstance(incoming, dict) or not isinstance(incoming.get("name"), str):
-            raise ValueError("Invalid bundled Codex marketplace plugin entry")
-        name = incoming["name"]
-        current = by_name.get(name)
-        if current is None:
-            merged_entries.append(incoming)
-            continue
-        index, existing_entry = current
-        if (
-            existing_entry.get("source") != incoming.get("source")
-            and not replace_conflicts
-        ):
-            raise ValueError(
-                f"Conflicting marketplace source for '{name}'; "
-                "rerun with --replace-conflicts to replace it"
-            )
-        merged_entries[index] = {**existing_entry, **incoming}
-
-    return {**existing, "plugins": merged_entries}
-
-
-def _replace_tree(source: Path, destination: Path) -> None:
-    if source.resolve() == destination.resolve():
-        return
-    destination.parent.mkdir(parents=True, exist_ok=True)
-    staging_root = Path(
-        tempfile.mkdtemp(prefix=f".{destination.name}.", dir=destination.parent)
-    )
-    staged = staging_root / destination.name
-    try:
-        shutil.copytree(source, staged)
-        if destination.exists():
-            if destination.is_dir():
-                shutil.rmtree(destination)
-            else:
-                destination.unlink()
-        os.replace(staged, destination)
-    finally:
-        if staging_root.exists():
-            shutil.rmtree(staging_root)
-
-
-def _install_codex_plugins(
-    root: Path,
-    scope_root: Path,
-    *,
-    replace_conflicts: bool = False,
-) -> None:
-    marketplace, marketplace_data, plugin_sources = _load_native_marketplace(root)
-    scope_root = scope_root.expanduser().absolute()
-    if scope_root.is_symlink():
-        raise ValueError(f"Native plugin scope must not be a symlink: {scope_root}")
-    scope_root.mkdir(parents=True, exist_ok=True)
-
-    plugin_root = scope_root / "plugins" / "codex"
-    marketplace_target = scope_root / ".agents" / "plugins" / "marketplace.json"
-    _require_safe_destination(scope_root, plugin_root)
-    _require_safe_destination(scope_root, marketplace_target)
-    if marketplace_target.exists() and not marketplace_target.is_file():
-        raise ValueError(
-            f"Native marketplace destination is not a file: {marketplace_target}"
-        )
-    merged_marketplace = _merged_marketplace(
-        marketplace_data,
-        marketplace_target,
-        replace_conflicts=replace_conflicts,
-    )
-    for source in plugin_sources:
-        destination = plugin_root / source.name
-        _require_safe_destination(scope_root, destination)
-        if destination.exists() and not destination.is_dir():
-            raise ValueError(f"Native plugin destination is not a directory: {destination}")
-
-    for source in plugin_sources:
-        destination = plugin_root / source.name
-        _replace_tree(source, destination)
-        print(f"installed codex plugin -> {destination}")
-
-    marketplace_target.parent.mkdir(parents=True, exist_ok=True)
-    temporary = marketplace_target.with_name(
-        f".{marketplace_target.name}.{os.getpid()}.tmp"
-    )
-    try:
-        temporary.write_text(
-            json.dumps(merged_marketplace, indent=2) + "\n",
-            encoding="utf-8",
-        )
-        os.replace(temporary, marketplace_target)
-    finally:
-        if temporary.exists():
-            temporary.unlink()
-    print(f"installed codex marketplace -> {marketplace_target}")
+    with tempfile.TemporaryDirectory(prefix="skills-codex-") as tmp:
+        assembled = Path(tmp) / "out"
+        _assemble(root, "codex", assembled)
+        plugin_root = scope_root / "plugins" / "codex"
+        if plugin_root.exists():
+            shutil.rmtree(plugin_root)
+        plugin_root.parent.mkdir(parents=True, exist_ok=True)
+        # copy plugins without marketplace.json at top
+        plugin_root.mkdir(parents=True)
+        for item in assembled.iterdir():
+            if item.name == "marketplace.json":
+                continue
+            if item.is_dir():
+                shutil.copytree(item, plugin_root / item.name)
+                print(f"installed codex plugin -> {plugin_root / item.name}")
+        market_src = assembled / "marketplace.json"
+        market_dst = scope_root / ".agents" / "plugins" / "marketplace.json"
+        if market_src.is_file():
+            data = json.loads(market_src.read_text(encoding="utf-8"))
+            for entry in data.get("plugins", []):
+                if isinstance(entry.get("source"), dict):
+                    entry["source"]["path"] = f"./plugins/codex/{entry['name']}"
+            market_dst.parent.mkdir(parents=True, exist_ok=True)
+            market_dst.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
+            print(f"installed codex marketplace -> {market_dst}")
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(
-        description="Install dist/ (or plugins/cursor) exports to platform paths"
-    )
-    parser.add_argument("platform", choices=list(PLATFORMS.keys()))
+    parser = argparse.ArgumentParser(description="Assemble and install portable skills")
+    parser.add_argument("platform", choices=["cursor", "claude", "codex"])
     scope = parser.add_mutually_exclusive_group()
-    scope.add_argument(
-        "--user",
-        action="store_true",
-        help="Install to user home (default: project)",
-    )
+    scope.add_argument("--user", action="store_true")
+    scope.add_argument("--project", nargs="?", const=Path.cwd(), type=Path, default=None)
     parser.add_argument(
         "--plugins",
         action="store_true",
-        help="Install full native plugins (Cursor or Codex)",
-    )
-    parser.add_argument(
-        "--replace-conflicts",
-        action="store_true",
-        help=(
-            "Replace same-name Codex marketplace entries whose source differs "
-            "(requires --plugins)"
-        ),
-    )
-    scope.add_argument(
-        "--project",
-        nargs="?",
-        const=Path.cwd(),
-        type=Path,
-        default=None,
-        help="Install to a project directory (default path: current directory)",
+        help="Install native plugins (assembled from core + adapters)",
     )
     args = parser.parse_args()
-    if args.plugins and args.platform not in {"cursor", "codex"}:
-        parser.error("--plugins is only supported for cursor and codex")
-    if args.replace_conflicts and (
-        args.platform != "codex" or not args.plugins
-    ):
-        parser.error("--replace-conflicts requires codex --plugins")
-
     root = find_root()
-    cfg = PLATFORMS[args.platform]
 
-    if args.platform == "cursor" and args.plugins:
-        if not args.user:
-            print("--plugins implies --user (Cursor local plugins)", file=sys.stderr)
-        _install_cursor_plugins(root, cfg["plugins_user"])
-        return 0
-
-    project_root = args.project or Path.cwd()
-    if args.platform == "codex" and args.plugins:
-        scope_root = Path.home() if args.user else project_root
-        try:
-            _install_codex_plugins(
-                root,
-                scope_root,
-                replace_conflicts=args.replace_conflicts,
+    if args.plugins:
+        if args.platform == "cursor":
+            target = Path.home() / ".cursor" / "plugins" / "local"
+            _install_cursor_plugins(root, target)
+            return 0
+        if args.platform == "claude":
+            target = (
+                Path.home() / ".claude" / "marketplaces" / "dasobral-skills"
+                if args.user
+                else (args.project or Path.cwd()) / "claude-marketplace"
             )
-        except ValueError as exc:
-            print(str(exc), file=sys.stderr)
-            return 1
+            _install_claude_marketplace(root, target)
+            return 0
+        scope_root = Path.home() if args.user else (args.project or Path.cwd())
+        _install_codex_plugins(root, scope_root)
         return 0
 
-    src = root / cfg["source"]
-    if not src.is_dir() and cfg.get("fallback_source"):
-        src = root / cfg["fallback_source"]
-    if not src.is_dir():
-        print(f"Missing {src} — run: ./bin/skills-maintain", file=sys.stderr)
-        return 1
-
-    targets = cfg["user"] if args.user else [project_root / p for p in cfg["project"]]
-    _install_flat_skills(src, targets, args.platform)
+    # Flat skills install
+    with tempfile.TemporaryDirectory(prefix="skills-flat-") as tmp:
+        assembled = Path(tmp) / "out"
+        _assemble(root, args.platform, assembled)
+        if args.user:
+            targets = {
+                "cursor": [Path.home() / ".cursor" / "skills"],
+                "claude": [Path.home() / ".claude" / "skills"],
+                "codex": [
+                    Path.home() / ".codex" / "skills",
+                    Path.home() / ".agents" / "skills",
+                ],
+            }[args.platform]
+        else:
+            project = args.project or Path.cwd()
+            targets = {
+                "cursor": [project / ".cursor" / "skills"],
+                "claude": [project / ".claude" / "skills"],
+                "codex": [project / ".agents" / "skills"],
+            }[args.platform]
+        _install_flat_from_plugins(assembled, targets)
     return 0
 
 
