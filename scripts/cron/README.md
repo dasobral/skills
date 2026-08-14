@@ -1,6 +1,6 @@
 # Cron maintenance for the portable skills framework
 
-Install a crontab entry that runs `bin/skills-maintain` on a schedule: ingest `landing/` → validate → export Cursor / Claude / Codex.
+Install a crontab entry that runs `bin/skills-maintain` on a schedule: ingest `landing/` → validate → write Agent Plugins packages and extras.
 
 ## Quick start
 

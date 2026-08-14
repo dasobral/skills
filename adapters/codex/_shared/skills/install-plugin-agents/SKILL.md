@@ -1,6 +1,8 @@
 ---
 name: install-plugin-agents
 description: Safely preview and install this plugin's bundled Codex agent templates.
+metadata:
+  internal: true
 ---
 
 # Install plugin agents

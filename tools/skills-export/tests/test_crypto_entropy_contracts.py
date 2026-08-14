@@ -38,7 +38,7 @@ def _fixture(domain: str) -> dict[str, Any]:
 
 
 def _run(skill: str, script: str, payload: object) -> object:
-    path = ROOT / "core" / "skills" / skill / "scripts" / script
+    path = ROOT / "skills" / skill / "scripts" / script
     result = subprocess.run(
         [sys.executable, str(path)],
         input=json.dumps(payload),
@@ -92,7 +92,7 @@ def test_crypto_helpers_emit_deterministic_schema_valid_contracts() -> None:
         assert first == second == expected
         schema = json.loads(
             (
-                ROOT / "core" / "skills" / skill / "references" / schema_name
+                ROOT / "skills" / skill / "references" / schema_name
             ).read_text()
         )
         _validate(first, schema)
@@ -103,7 +103,7 @@ def test_inventory_rejects_secret_or_raw_key_material() -> None:
     data["assets"][0]["private_key"] = "do-not-collect"
     script = (
         ROOT
-        / "core/skills/build-crypto-inventory/scripts/build_inventory.py"
+        / "skills/build-crypto-inventory/scripts/build_inventory.py"
     )
     result = subprocess.run(
         [sys.executable, str(script)],
@@ -138,7 +138,7 @@ def test_evidence_helpers_reject_secret_fields(
 ) -> None:
     payload = _fixture(domain)[fixture]
     payload["private_key"] = "do-not-collect"
-    path = ROOT / "core" / "skills" / skill / "scripts" / script
+    path = ROOT / "skills" / skill / "scripts" / script
     result = subprocess.run(
         [sys.executable, str(path)],
         input=json.dumps(payload),
@@ -197,7 +197,7 @@ def test_entropy_helpers_emit_schema_valid_qualification_contracts() -> None:
         assert actual == expected
         schema = json.loads(
             (
-                ROOT / "core" / "skills" / skill / "references" / schema_name
+                ROOT / "skills" / skill / "references" / schema_name
             ).read_text()
         )
         _validate(actual, schema)
@@ -205,13 +205,13 @@ def test_entropy_helpers_emit_schema_valid_qualification_contracts() -> None:
     source_schema = json.loads(
         (
             ROOT
-            / "core/skills/qualify-entropy-source/references/entropy-source.schema.json"
+            / "skills/qualify-entropy-source/references/entropy-source.schema.json"
         ).read_text()
     )
     health_schema = json.loads(
         (
             ROOT
-            / "core/skills/qualify-entropy-source/references/health-test-parameters.schema.json"
+            / "skills/qualify-entropy-source/references/health-test-parameters.schema.json"
         ).read_text()
     )
     _validate(data["qualification_input"]["source_identity"], source_schema)
@@ -262,7 +262,7 @@ def test_requalification_exceptions_must_be_version_pinned_and_exact() -> None:
 
 def test_skills_have_portable_metadata_pinned_sources_and_non_claims() -> None:
     for skill, (schema_name, script_name) in SKILLS.items():
-        directory = ROOT / "core" / "skills" / skill
+        directory = ROOT / "skills" / skill
         text = (directory / "SKILL.md").read_text()
         frontmatter = yaml.safe_load(text.split("---", 2)[1])
         assert frontmatter["name"] == skill
@@ -277,13 +277,13 @@ def test_skills_have_portable_metadata_pinned_sources_and_non_claims() -> None:
 
     pqc = (
         ROOT
-        / "core/skills/plan-pqc-migration/references/authoritative-sources.md"
+        / "skills/plan-pqc-migration/references/authoritative-sources.md"
     ).read_text()
     for publication in ("FIPS 203", "FIPS 204", "FIPS 205", "NIST.IR.8547"):
         assert publication in pqc
     entropy = (
         ROOT
-        / "core/skills/qualify-entropy-source/references/authoritative-sources.md"
+        / "skills/qualify-entropy-source/references/authoritative-sources.md"
     ).read_text()
     assert "NIST.SP.800-90B" in entropy
 
@@ -341,7 +341,7 @@ def test_all_crypto_entropy_contract_objects_are_closed() -> None:
     references = [
         path
         for skill in SKILLS
-        for path in (ROOT / "core" / "skills" / skill / "references").glob(
+        for path in (ROOT / "skills" / skill / "references").glob(
             "*.schema.json"
         )
     ]
@@ -370,7 +370,7 @@ def test_recursive_credential_patterns_are_rejected_without_echo(
     payload["assets"][0]["parameters"]["nested"] = {
         credential_key: "sensitive-value"
     }
-    script = ROOT / "core/skills/build-crypto-inventory/scripts/build_inventory.py"
+    script = ROOT / "skills/build-crypto-inventory/scripts/build_inventory.py"
     result = subprocess.run(
         [sys.executable, str(script)],
         input=json.dumps(payload),
@@ -385,7 +385,7 @@ def test_recursive_credential_patterns_are_rejected_without_echo(
 def test_production_validator_rejects_undeclared_cbom_properties() -> None:
     payload = _fixture("crypto")["cbom_before"]
     payload["undeclared"] = True
-    script = ROOT / "core/skills/build-crypto-inventory/scripts/build_inventory.py"
+    script = ROOT / "skills/build-crypto-inventory/scripts/build_inventory.py"
     result = subprocess.run(
         [sys.executable, str(script)],
         input=json.dumps(payload),
@@ -1440,7 +1440,7 @@ def test_runtime_check_skills_are_idempotent_and_never_install(
 
 
 def test_standalone_helper_reports_missing_validator_as_evidence_gap() -> None:
-    script = ROOT / "core/skills/build-crypto-inventory/scripts/build_inventory.py"
+    script = ROOT / "skills/build-crypto-inventory/scripts/build_inventory.py"
     result = subprocess.run(
         [sys.executable, "-S", str(script)],
         input=json.dumps(_fixture("crypto")["cbom_before"]),
@@ -1539,7 +1539,7 @@ def test_collector_rejects_every_symlink_component(
         (root / "evidence-link.json").symlink_to(real / "nested/evidence.json")
         relative = "evidence-link.json"
     script = (
-        ROOT / "core/skills/build-crypto-inventory/scripts/collect_evidence.py"
+        ROOT / "skills/build-crypto-inventory/scripts/collect_evidence.py"
     )
     result = subprocess.run(
         [sys.executable, str(script)],
@@ -1561,7 +1561,7 @@ def test_collector_refuses_sensitive_paths_without_hashing_content(
 ) -> None:
     (tmp_path / ".env").write_text("ACCESS_TOKEN=sensitive-value\n", encoding="utf-8")
     script = (
-        ROOT / "core/skills/build-crypto-inventory/scripts/collect_evidence.py"
+        ROOT / "skills/build-crypto-inventory/scripts/collect_evidence.py"
     )
     result = subprocess.run(
         [sys.executable, str(script)],
@@ -1628,7 +1628,7 @@ def test_interoperability_runner_requires_full_bubblewrap_isolation() -> None:
     schema = json.loads(
         (
             ROOT
-            / "core/skills/test-crypto-interoperability/references/interoperability-run.schema.json"
+            / "skills/test-crypto-interoperability/references/interoperability-run.schema.json"
         ).read_text()
     )
     _validate(actual, schema)
@@ -1726,7 +1726,7 @@ def test_interoperability_runner_ignores_path_injected_bwrap(
             },
         },
     }
-    script = ROOT / "core/skills/test-crypto-interoperability/scripts/run_case.py"
+    script = ROOT / "skills/test-crypto-interoperability/scripts/run_case.py"
     result = subprocess.run(
         [sys.executable, str(script)],
         input=json.dumps(payload),
@@ -1744,7 +1744,7 @@ def test_interoperability_command_exposes_no_host_root_or_sensitive_dirs(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     script = (
-        ROOT / "core/skills/test-crypto-interoperability/scripts/run_case.py"
+        ROOT / "skills/test-crypto-interoperability/scripts/run_case.py"
     )
     sys.path.insert(0, str(script.parent))
     try:
@@ -1853,7 +1853,7 @@ def test_invocation_provenance_rejects_credential_flags_without_echo() -> None:
     payload["estimator_invocations"][0]["argv"].append(
         "--access-token=sensitive-value"
     )
-    script = ROOT / "core/skills/qualify-entropy-source/scripts/qualify_run.py"
+    script = ROOT / "skills/qualify-entropy-source/scripts/qualify_run.py"
     result = subprocess.run(
         [sys.executable, str(script)],
         input=json.dumps(payload),
@@ -1896,7 +1896,7 @@ def test_sp800_90b_derivation_rejects_invalid_assumptions(
 ) -> None:
     script = (
         ROOT
-        / "core/skills/qualify-entropy-source/scripts/derive_health_tests.py"
+        / "skills/qualify-entropy-source/scripts/derive_health_tests.py"
     )
     result = subprocess.run(
         [sys.executable, str(script)],
@@ -1948,7 +1948,7 @@ def test_sp800_90b_health_parameters_are_derived_and_checked() -> None:
 
     payload["health_test_parameters"]["repetition_count_cutoff"] += 1
     script = (
-        ROOT / "core/skills/qualify-entropy-source/scripts/qualify_run.py"
+        ROOT / "skills/qualify-entropy-source/scripts/qualify_run.py"
     )
     rejected = subprocess.run(
         [sys.executable, str(script)],
@@ -1985,7 +1985,7 @@ def test_shared_evidence_states_are_distinct_from_decisions() -> None:
 def test_nist_ir_8547_pin_is_exact_draft_with_source_hash() -> None:
     reference = (
         ROOT
-        / "core/skills/plan-pqc-migration/references/authoritative-sources.md"
+        / "skills/plan-pqc-migration/references/authoritative-sources.md"
     ).read_text()
     assert "NIST.IR.8547-IPD@2024-11-12" in reference
     assert "Initial Public Draft" in reference

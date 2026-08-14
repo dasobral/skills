@@ -1,51 +1,56 @@
 # Portable Skills
 
-Portable Agent Skills in `core/`. Platform scaffolding in `adapters/`. Nothing else is source of truth.
+Portable Agent Skills and Agent Plugins live here. The Vercel CLI installs skills. This repo is not a skills package manager.
 
 ```
-landing/skills/  →  ingest  →  core/skills/
-                                   + adapters/<platform>/
-                                   ↓
-                              assemble → dist/ (gitignored)
-                                   ↓
-                              skills-install
+landing/skills/  →  ingest  →  skills/
+                                 + core/manifest.yaml
+                                 + plugins/<family>/plugin.json
+                                 ↓
+                            adapters (Cursor/Codex extras)
+                                 ↓
+                            skills-install --plugins
 ```
 
 ## Use
 
 ```bash
-# Add a skill
-# 1. drop landing/skills/my-skill/SKILL.md
-# 2. map it in landing/registry.yaml
-./bin/skills-maintain
+# Install portable skills (Cursor, Claude Code, Codex, and 70+ other agents)
+npx skills add dasobral/skills
+npx skills add dasobral/skills -g -a cursor -a claude-code -a codex -y
+npx skills add dasobral/skills --list
 
-# Install
+# Optional: Cursor or Codex extras (agents, hooks, rules)
 ./bin/skills-install cursor --plugins --user
-./bin/skills-install claude --plugins --user
 ./bin/skills-install codex --plugins --project
 ```
+
+Set `DISABLE_TELEMETRY=1` to opt out of skills CLI telemetry.
+
+Claude Code has no extras in this repo. Install Claude skills with `npx skills add`.
 
 ## Layout
 
 | Path | Role |
 |------|------|
-| `core/skills/` | Portable skills (edit here) |
-| `core/manifest.yaml` | Plugin ↔ skill map |
-| `adapters/{cursor,claude,codex}/` | Agents, hooks, manifests |
+| `skills/` | Portable Agent Skills (edit here; well-known discovery path) |
+| `core/manifest.yaml` | Plugin family ↔ skill map |
+| `plugins/<family>/` | Agent Plugins 1.0.0 packages (`plugin.json` + skill links) |
+| `adapters/{cursor,codex}/` | Agents, hooks, rules (not portable) |
 | `landing/skills/` | Ingest drop zone |
-| `dist/` | Generated output (gitignored) |
-| `tools/skills-export/` | CLI |
+| `dist/` | Generated Cursor/Codex extras (gitignored) |
 
-Generated plugin trees are **never committed**. Assemble on demand.
+Generated native extras are **never committed**. Portable plugin manifests are.
 
 ## Commands
 
 | Command | Action |
 |---------|--------|
-| `./bin/skills-export validate` | Check core |
-| `./bin/skills-export export` | Write `dist/{cursor,claude,codex}/` |
-| `./bin/skills-export ingest` | Landing → core |
+| `npx skills add dasobral/skills` | Install skills via the Vercel CLI |
+| `./bin/skills-export validate` | Check skills, manifest, and Agent Plugins packages |
+| `./bin/skills-export export` | Write `plugins/<family>/` and `dist/{cursor,claude,codex}/` |
+| `./bin/skills-export ingest` | Landing → `skills/` |
 | `./bin/skills-maintain` | Ingest + validate + export |
-| `./bin/skills-install <platform> [--plugins]` | Assemble into install paths |
+| `./bin/skills-install cursor\|codex --plugins` | Assemble extras into install paths |
 
 MIT — see [LICENSE](./LICENSE).

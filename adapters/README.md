@@ -1,6 +1,6 @@
 # Adapters
 
-Platform scaffolding only. Portable skills live in `core/skills/`.
+Platform extras only. Portable skills live in `skills/`. Agent Plugins packages live in `plugins/<family>/`.
 
 ```
 adapters/<platform>/<plugin>/
@@ -9,4 +9,4 @@ adapters/<platform>/<plugin>/
   README.md
 ```
 
-Export/install merges these with core skills into `dist/` (not committed).
+`skills-install cursor|codex --plugins` merges these with portable skills into install paths. Claude Code has no extras here.

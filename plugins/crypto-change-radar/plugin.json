@@ -1,0 +1,16 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "crypto-change-radar",
+  "version": "0.1.0",
+  "description": "Inventory cryptography, review changes, and plan interoperable PQC migration.",
+  "license": "MIT",
+  "keywords": [
+    "cryptography",
+    "cbom",
+    "pqc",
+    "interoperability"
+  ],
+  "author": {
+    "name": "Daniel Sobral Blanco"
+  }
+}

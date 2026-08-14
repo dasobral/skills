@@ -1,3 +1,3 @@
-"""Generate native plugins and flat skills from the portable core."""
+"""Validate portable skills, Agent Plugins packages, and extras assembly."""
 
-__version__ = "0.2.0"
+__version__ = "0.3.0"

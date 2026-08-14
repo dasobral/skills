@@ -1,8 +1,9 @@
 # Codex adapters
 
 This directory contains the Codex-specific authoring overlays for native
-plugins. Portable skills and shared metadata remain under `core/`; generated
-native plugins are written under `plugins/codex/`.
+plugins. Portable skills live under `skills/`; shared metadata remains under
+`core/`; Agent Plugins packages live under `plugins/<family>/`. Generated
+native extras are written under `dist/codex/` (gitignored).
 
 The six cross-platform families (`codecraft`, `cpp-qkd-toolkit`,
 `agent-platform`, `aos-stack`, `scientific-computing`, and `career-writer`)
@@ -24,15 +25,18 @@ An adapter may provide:
 - `skills/` and safe assets — Codex-only additions.
 
 Add portable skill names and plugin metadata to `core/manifest.yaml`, keep
-portable instructions under `core/skills/`, and put only Codex-specific files
+portable instructions under `skills/`, and put only Codex-specific files
 in an overlay. Regenerate with:
 
 ```bash
 ./bin/skills-export sync codex
-./bin/skills-export validate codex
+./bin/skills-export validate
 ```
 
-Do not edit `plugins/codex/` or `.agents/plugins/marketplace.json` directly.
+Do not edit `dist/codex/` or generated marketplace JSON directly.
+
+Install portable skills with `npx skills add dasobral/skills -a codex`.
+Install Codex extras with `./bin/skills-install codex --plugins --project`.
 
 Agent templates are bundled but are not installed automatically. Plugins with
 agents receive the shared `install-plugin-agents` skill, which previews and
@@ -42,7 +46,7 @@ without installing agents. Start a new Codex session after agent installation.
 
 ## Generated native plugin
 
-Each generated `plugins/codex/<plugin>/` contains:
+Each generated `dist/codex/<plugin>/` contains:
 
 - `.codex-plugin/plugin.json`;
 - `skills/<skill>/`;

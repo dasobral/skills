@@ -39,7 +39,7 @@ def _validate_artifact(artifact: object) -> None:
         script.parents[3]
         / "skills/build-crypto-inventory/references/crypto-policy.schema.json",
         script.parents[6]
-        / "core/skills/build-crypto-inventory/references/crypto-policy.schema.json",
+        / "skills/build-crypto-inventory/references/crypto-policy.schema.json",
     )
     schema_path = next((path for path in candidates if path.is_file()), None)
     if schema_path is None:

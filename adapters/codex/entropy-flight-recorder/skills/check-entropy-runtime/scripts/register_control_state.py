@@ -39,7 +39,7 @@ def _validate_artifact(artifact: object) -> None:
         script.parents[3]
         / "skills/qualify-entropy-source/references/entropy-baseline.schema.json",
         script.parents[6]
-        / "core/skills/qualify-entropy-source/references/entropy-baseline.schema.json",
+        / "skills/qualify-entropy-source/references/entropy-baseline.schema.json",
     )
     schema_path = next((path for path in candidates if path.is_file()), None)
     if schema_path is None:

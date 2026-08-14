@@ -1,0 +1,16 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "scientific-claim-ledger",
+  "version": "0.1.0",
+  "description": "Capture reproducible runs and audit scientific and SciML claims against evidence.",
+  "license": "MIT",
+  "keywords": [
+    "scientific-computing",
+    "reproducibility",
+    "sciml",
+    "validation"
+  ],
+  "author": {
+    "name": "Daniel Sobral Blanco"
+  }
+}

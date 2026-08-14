@@ -1,6 +1,8 @@
 ---
 name: check-entropy-runtime
 description: Check the optional pinned JSON Schema runtime required by entropy evidence helpers and hooks without installing software.
+metadata:
+  internal: true
 ---
 
 # Check Entropy Runtime

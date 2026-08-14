@@ -18,7 +18,7 @@ except ModuleNotFoundError:  # Python 3.10
 
 ROOT = Path(__file__).parents[3]
 FIXTURES = Path(__file__).parent / "fixtures" / "workflows" / "science"
-SKILLS = ROOT / "core" / "skills"
+SKILLS = ROOT / "skills"
 ADAPTER = ROOT / "adapters" / "codex" / "scientific-claim-ledger"
 
 

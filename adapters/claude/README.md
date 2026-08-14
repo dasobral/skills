@@ -1,15 +1,9 @@
 # Claude Code adapter
 
-Platform scaffolding for Claude Code plugins. The exporter owns assembly:
+Claude Code has no extras in this repository. Install the portable skills with:
 
+```bash
+npx skills add dasobral/skills -a claude-code
 ```
-core/skills/ + adapters/claude/<plugin>/  →  plugins/claude/<plugin>/
-```
 
-Each generated plugin has:
-
-- `.claude-plugin/plugin.json` — from manifest + optional `plugin.json` overlay
-- `skills/` — portable core skills
-- optional `agents/`, `hooks/`, `commands/`, `.mcp.json` when present here
-
-Author scaffolding here. Do not put portable skill content in adapters.
+If a future Claude-only overlay is needed (commands, Claude hooks, Claude agents), author it here. Until then, do not put portable skill content in this adapter.

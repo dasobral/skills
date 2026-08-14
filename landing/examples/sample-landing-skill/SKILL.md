@@ -4,6 +4,8 @@ description: >
   Example skill for landing zone documentation. Copy to landing/skills/ and
   assign in registry.yaml before running skills-maintain. Not ingested from examples/.
 license: MIT
+metadata:
+  internal: true
 ---
 
 # Sample Landing Skill

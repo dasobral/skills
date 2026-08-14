@@ -35,7 +35,7 @@ def _skill_root() -> Path | None:
         repository = Path(__file__).parents[5]
     except IndexError:
         return None
-    authored = repository / "core" / "skills"
+    authored = repository / "skills"
     return authored if authored.is_dir() else None
 
 

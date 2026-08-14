@@ -1,6 +1,6 @@
 # Skills ecosystem SOTA and repo update design
 
-**Status:** analysis for review. Do not implement until an approach is approved.
+**Status:** Approach B implemented in 2.6.0. This document is the analysis that led to that change.
 
 **Date:** 2026-08-14
 

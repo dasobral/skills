@@ -1,0 +1,18 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "agent-platform",
+  "version": "2.2.0",
+  "description": "Rewrite instructions with Agent STE, create agent definitions, and orchestrate multi-agent pipelines.",
+  "license": "MIT",
+  "keywords": [
+    "agents",
+    "orchestration",
+    "multi-agent",
+    "task-graph",
+    "agent-ste",
+    "controlled-language"
+  ],
+  "author": {
+    "name": "Daniel Sobral Blanco"
+  }
+}

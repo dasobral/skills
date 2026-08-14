@@ -42,6 +42,7 @@ def test_cli_validate_and_export(repo_copy: Path) -> None:
 def test_maintain_dry_run(repo_copy: Path, capsys) -> None:
     assert main(["--root", str(repo_copy), "maintain", "--dry-run", "--skip-ingest"]) == 0
     out = capsys.readouterr().out
-    assert "would export cursor" in out
-    assert "would export claude" in out
-    assert "would export codex" in out
+    assert "would export agent-plugins" in out
+    assert "would export cursor extras" in out
+    assert "would export claude extras" in out
+    assert "would export codex extras" in out

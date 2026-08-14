@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "skills-export"
 version = "0.1.0"
-description = "Export portable agent skills to Cursor, Claude Code, and Codex"
+description = "Validate portable agent skills and assemble Cursor/Codex extras"
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
@@ -23,6 +23,9 @@ skills-export = "skills_export.cli:main"
 [tool.setuptools.packages.find]
 where = ["."]
 include = ["skills_export*"]
+
+[tool.setuptools.package-data]
+skills_export = ["schemas/*.json"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

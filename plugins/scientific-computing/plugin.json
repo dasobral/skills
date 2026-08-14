@@ -1,0 +1,17 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "scientific-computing",
+  "version": "2.1.0",
+  "description": "Scientific computing platform design with right-sized infrastructure.",
+  "license": "MIT",
+  "keywords": [
+    "scientific",
+    "hpc",
+    "architecture",
+    "emulators",
+    "pytorch"
+  ],
+  "author": {
+    "name": "Daniel Sobral Blanco"
+  }
+}

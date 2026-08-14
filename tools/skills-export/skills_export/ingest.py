@@ -141,7 +141,7 @@ def _archive_item(
 
 
 def ingest_landing(root: Path | None = None, *, dry_run: bool = False) -> IngestResult:
-    """Ingest portable skills from landing/skills/ into core/.
+    """Ingest portable skills from landing/skills/ into skills/.
 
     Unique ingest path: only landing/skills/<skill>/. Platform scaffolding is
     never ingested; author it under adapters/<platform>/<plugin>/.

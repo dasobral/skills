@@ -171,7 +171,6 @@ def _external_replay_options(
 def _write_built_scenario(tmp_path: Path) -> Path:
     script = (
         REPOSITORY_ROOT
-        / "core"
         / "skills"
         / "build-attack-scenario"
         / "scripts"
@@ -204,7 +203,7 @@ def _schema_status_enums(value: object) -> list[set[str]]:
 
 def test_portable_skills_ship_schemas_examples_and_executable_validators() -> None:
     for skill_name, schema_name in SKILL_CONTRACTS.items():
-        skill = REPOSITORY_ROOT / "core" / "skills" / skill_name
+        skill = REPOSITORY_ROOT / "skills" / skill_name
         schema = skill / "references" / "schemas" / schema_name
         example = (
             skill
@@ -232,7 +231,6 @@ def test_portable_skills_ship_schemas_examples_and_executable_validators() -> No
 
     regression_schema = (
         REPOSITORY_ROOT
-        / "core"
         / "skills"
         / "run-agent-attack-replay"
         / "references"
@@ -241,7 +239,6 @@ def test_portable_skills_ship_schemas_examples_and_executable_validators() -> No
     )
     regression_example = (
         REPOSITORY_ROOT
-        / "core"
         / "skills"
         / "run-agent-attack-replay"
         / "references"
@@ -258,7 +255,7 @@ def test_portable_skills_ship_schemas_examples_and_executable_validators() -> No
 def test_every_task7_schema_is_valid_draft_2020_12() -> None:
     for skill_name in SKILL_CONTRACTS:
         schemas = (
-            REPOSITORY_ROOT / "core" / "skills" / skill_name / "references" / "schemas"
+            REPOSITORY_ROOT / "skills" / skill_name / "references" / "schemas"
         ).glob("*.schema.json")
         for path in schemas:
             schema = json.loads(path.read_text(encoding="utf-8"))
@@ -280,7 +277,7 @@ def test_task7_validators_run_json_schema_before_semantic_validation(
     skill_name: str,
     artifact_name: str,
 ) -> None:
-    skill = REPOSITORY_ROOT / "core" / "skills" / skill_name
+    skill = REPOSITORY_ROOT / "skills" / skill_name
     script = skill / "scripts" / f"{skill_name.replace('-', '_')}.py"
     artifact = json.loads(
         (skill / "references" / "examples" / artifact_name).read_text(
@@ -316,7 +313,7 @@ def test_task7_validators_report_jsonschema_dependency_evidence_gap(
     skill_name: str,
     artifact_name: str,
 ) -> None:
-    skill = REPOSITORY_ROOT / "core" / "skills" / skill_name
+    skill = REPOSITORY_ROOT / "skills" / skill_name
     script = skill / "scripts" / f"{skill_name.replace('-', '_')}.py"
     artifact = skill / "references" / "examples" / artifact_name
 
@@ -342,7 +339,6 @@ def test_repository_inventory_is_deterministic_hashed_and_content_private(
     shutil.copytree(source, repository, symlinks=True)
     script = (
         REPOSITORY_ROOT
-        / "core"
         / "skills"
         / "assess-repository-trust"
         / "scripts"
@@ -392,7 +388,6 @@ def test_repository_inventory_is_deterministic_hashed_and_content_private(
 def test_mcp_drift_canonicalizes_and_reports_security_checks() -> None:
     script = (
         REPOSITORY_ROOT
-        / "core"
         / "skills"
         / "review-mcp-drift"
         / "scripts"
@@ -449,7 +444,6 @@ def test_mcp_instruction_scanner_covers_nested_and_remote_surfaces(
 ) -> None:
     script = (
         REPOSITORY_ROOT
-        / "core"
         / "skills"
         / "review-mcp-drift"
         / "scripts"
@@ -505,7 +499,6 @@ def test_trust_gate_binds_decision_to_snapshot_parameters_and_hash_linked_ledger
     shutil.copytree(FIXTURES / "repository", repository, symlinks=True)
     script = (
         REPOSITORY_ROOT
-        / "core"
         / "skills"
         / "assess-repository-trust"
         / "scripts"
@@ -704,7 +697,6 @@ def test_trust_gate_requires_authenticated_snapshot_anchor_and_binding(
     shutil.copytree(FIXTURES / "repository", repository, symlinks=True)
     script = (
         REPOSITORY_ROOT
-        / "core"
         / "skills"
         / "assess-repository-trust"
         / "scripts"
@@ -835,7 +827,6 @@ def test_trust_gate_rejects_approval_after_later_applicable_revocation(
     shutil.copytree(FIXTURES / "repository", repository, symlinks=True)
     script = (
         REPOSITORY_ROOT
-        / "core"
         / "skills"
         / "assess-repository-trust"
         / "scripts"
@@ -921,7 +912,6 @@ def test_trust_gate_rejects_approval_after_later_applicable_revocation(
 def test_attack_scenario_hashes_fixtures_without_embedding_payloads() -> None:
     script = (
         REPOSITORY_ROOT
-        / "core"
         / "skills"
         / "build-attack-scenario"
         / "scripts"
@@ -940,7 +930,6 @@ def test_attack_scenario_hashes_fixtures_without_embedding_payloads() -> None:
     assert all(item["content_hash"].startswith("sha256:") for item in scenario["fixture_hashes"])
     role_definitions = (
         REPOSITORY_ROOT
-        / "core"
         / "skills"
         / "run-agent-attack-replay"
         / "references"
@@ -958,7 +947,6 @@ def test_replay_harness_uses_isolated_structured_tools_and_monitor_observations(
 ) -> None:
     scenario_script = (
         REPOSITORY_ROOT
-        / "core"
         / "skills"
         / "build-attack-scenario"
         / "scripts"
@@ -966,7 +954,6 @@ def test_replay_harness_uses_isolated_structured_tools_and_monitor_observations(
     )
     replay_script = (
         REPOSITORY_ROOT
-        / "core"
         / "skills"
         / "run-agent-attack-replay"
         / "scripts"
@@ -1076,7 +1063,6 @@ def test_replay_rejects_caller_declared_observations_and_success(
 ) -> None:
     scenario_script = (
         REPOSITORY_ROOT
-        / "core"
         / "skills"
         / "build-attack-scenario"
         / "scripts"
@@ -1084,7 +1070,6 @@ def test_replay_rejects_caller_declared_observations_and_success(
     )
     replay_script = (
         REPOSITORY_ROOT
-        / "core"
         / "skills"
         / "run-agent-attack-replay"
         / "scripts"
@@ -1131,7 +1116,6 @@ def test_replay_validation_rejects_tampered_monitor_observation(
 ) -> None:
     scenario_script = (
         REPOSITORY_ROOT
-        / "core"
         / "skills"
         / "build-attack-scenario"
         / "scripts"
@@ -1139,7 +1123,6 @@ def test_replay_validation_rejects_tampered_monitor_observation(
     )
     replay_script = (
         REPOSITORY_ROOT
-        / "core"
         / "skills"
         / "run-agent-attack-replay"
         / "scripts"
@@ -1191,7 +1174,6 @@ def test_replay_validation_requires_external_anchor_and_monitor(
 ) -> None:
     scenario_script = (
         REPOSITORY_ROOT
-        / "core"
         / "skills"
         / "build-attack-scenario"
         / "scripts"
@@ -1199,7 +1181,6 @@ def test_replay_validation_requires_external_anchor_and_monitor(
     )
     replay_script = (
         REPOSITORY_ROOT
-        / "core"
         / "skills"
         / "run-agent-attack-replay"
         / "scripts"
@@ -1264,7 +1245,6 @@ def test_replay_validation_requires_external_anchor_and_monitor(
 def test_replay_external_anchor_rejects_rewritten_chain(tmp_path: Path) -> None:
     scenario_script = (
         REPOSITORY_ROOT
-        / "core"
         / "skills"
         / "build-attack-scenario"
         / "scripts"
@@ -1272,7 +1252,6 @@ def test_replay_external_anchor_rejects_rewritten_chain(tmp_path: Path) -> None:
     )
     replay_script = (
         REPOSITORY_ROOT
-        / "core"
         / "skills"
         / "run-agent-attack-replay"
         / "scripts"
@@ -1329,7 +1308,6 @@ def test_replay_validation_recomputes_assertions_outcomes_counts_and_intervals(
 ) -> None:
     scenario_script = (
         REPOSITORY_ROOT
-        / "core"
         / "skills"
         / "build-attack-scenario"
         / "scripts"
@@ -1337,7 +1315,6 @@ def test_replay_validation_recomputes_assertions_outcomes_counts_and_intervals(
     )
     replay_script = (
         REPOSITORY_ROOT
-        / "core"
         / "skills"
         / "run-agent-attack-replay"
         / "scripts"
@@ -1411,7 +1388,6 @@ def test_replay_validation_recomputes_assertions_outcomes_counts_and_intervals(
 def test_replay_rejects_mismatched_packaged_role_hash(tmp_path: Path) -> None:
     scenario_script = (
         REPOSITORY_ROOT
-        / "core"
         / "skills"
         / "build-attack-scenario"
         / "scripts"
@@ -1419,7 +1395,6 @@ def test_replay_rejects_mismatched_packaged_role_hash(tmp_path: Path) -> None:
     )
     replay_script = (
         REPOSITORY_ROOT
-        / "core"
         / "skills"
         / "run-agent-attack-replay"
         / "scripts"
@@ -1456,7 +1431,7 @@ def test_replay_rejects_mismatched_packaged_role_hash(tmp_path: Path) -> None:
 
 
 def test_replay_worker_rejects_cross_role_inputs(tmp_path: Path) -> None:
-    skill = REPOSITORY_ROOT / "core" / "skills" / "run-agent-attack-replay"
+    skill = REPOSITORY_ROOT / "skills" / "run-agent-attack-replay"
     worker = skill / "scripts" / "replay_role_worker.py"
     definition = skill / "references" / "roles" / "attacker.toml"
     envelope = {
@@ -1492,7 +1467,6 @@ def test_replay_requires_executor_and_marks_scripted_self_test_not_applicable(
 ) -> None:
     replay_script = (
         REPOSITORY_ROOT
-        / "core"
         / "skills"
         / "run-agent-attack-replay"
         / "scripts"
@@ -1544,7 +1518,6 @@ def test_replay_refuses_security_measurement_without_bubblewrap(
 ) -> None:
     replay_script = (
         REPOSITORY_ROOT
-        / "core"
         / "skills"
         / "run-agent-attack-replay"
         / "scripts"
@@ -1601,7 +1574,6 @@ def test_replay_refuses_security_measurement_without_bubblewrap(
 def test_replay_ignores_path_spoofed_bubblewrap(tmp_path: Path) -> None:
     replay_script = (
         REPOSITORY_ROOT
-        / "core"
         / "skills"
         / "run-agent-attack-replay"
         / "scripts"
@@ -1659,7 +1631,6 @@ def test_replay_rejects_user_owned_configured_bubblewrap(
 ) -> None:
     replay_script = (
         REPOSITORY_ROOT
-        / "core"
         / "skills"
         / "run-agent-attack-replay"
         / "scripts"
@@ -1717,7 +1688,6 @@ def test_replay_rejects_unapproved_or_digest_mismatched_executor_inputs(
 ) -> None:
     replay_script = (
         REPOSITORY_ROOT
-        / "core"
         / "skills"
         / "run-agent-attack-replay"
         / "scripts"
@@ -1784,7 +1754,6 @@ def test_replay_sandbox_rejects_host_paths_and_uses_minimal_namespaces(
 ) -> None:
     replay_script = (
         REPOSITORY_ROOT
-        / "core"
         / "skills"
         / "run-agent-attack-replay"
         / "scripts"
@@ -1872,7 +1841,6 @@ def test_replay_external_state_detects_key_and_ledger_tampering(
 ) -> None:
     replay_script = (
         REPOSITORY_ROOT
-        / "core"
         / "skills"
         / "run-agent-attack-replay"
         / "scripts"
@@ -1967,7 +1935,6 @@ def test_replay_anchor_is_create_only_and_ledger_rejects_replay(
 ) -> None:
     replay_script = (
         REPOSITORY_ROOT
-        / "core"
         / "skills"
         / "run-agent-attack-replay"
         / "scripts"
@@ -2013,7 +1980,6 @@ def test_replay_ledger_links_distinct_runs_and_rejects_stale_anchor(
 ) -> None:
     replay_script = (
         REPOSITORY_ROOT
-        / "core"
         / "skills"
         / "run-agent-attack-replay"
         / "scripts"
@@ -2091,7 +2057,6 @@ def test_replay_validation_rejects_rewritten_executor_attestation(
 ) -> None:
     replay_script = (
         REPOSITORY_ROOT
-        / "core"
         / "skills"
         / "run-agent-attack-replay"
         / "scripts"
@@ -2137,7 +2102,6 @@ def test_replay_validation_rejects_rewritten_executor_attestation(
 def test_replay_mediator_rejects_host_filesystem_escape(tmp_path: Path) -> None:
     scenario_script = (
         REPOSITORY_ROOT
-        / "core"
         / "skills"
         / "build-attack-scenario"
         / "scripts"
@@ -2145,7 +2109,6 @@ def test_replay_mediator_rejects_host_filesystem_escape(tmp_path: Path) -> None:
     )
     replay_script = (
         REPOSITORY_ROOT
-        / "core"
         / "skills"
         / "run-agent-attack-replay"
         / "scripts"
