@@ -1,6 +1,8 @@
 ---
 name: check-crypto-runtime
 description: Check the optional pinned JSON Schema runtime required by crypto evidence helpers and hooks without installing software.
+metadata:
+  internal: true
 ---
 
 # Check Crypto Runtime

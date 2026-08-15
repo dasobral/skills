@@ -1,0 +1,18 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "cpp-qkd-toolkit",
+  "version": "2.1.0",
+  "description": "Production C++ for QKD ground-segment systems: implement, build, and multi-lens review.",
+  "license": "MIT",
+  "keywords": [
+    "cpp",
+    "qkd",
+    "security",
+    "realtime",
+    "defense",
+    "cmake"
+  ],
+  "author": {
+    "name": "Daniel Sobral Blanco"
+  }
+}

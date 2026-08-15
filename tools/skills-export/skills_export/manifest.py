@@ -25,8 +25,14 @@ def load_manifest(root: Path | None = None) -> dict[str, Any]:
     return data
 
 
+def skills_dir(root: Path) -> Path:
+    """Well-known Agent Skills tree (`skills/<name>/SKILL.md`)."""
+    return root / "skills"
+
+
 def core_skills_dir(root: Path) -> Path:
-    return root / "core" / "skills"
+    """Backward-compatible alias for skills_dir()."""
+    return skills_dir(root)
 
 
 def cursor_adapter_dir(root: Path, plugin: str) -> Path:
@@ -123,7 +129,7 @@ def enrich_skill(skill_dst: Path, root: Path) -> None:
 
 
 def copy_skill(root: Path, skill_name: str, dst: Path) -> None:
-    copy_tree(core_skills_dir(root) / skill_name, dst)
+    copy_tree(skills_dir(root) / skill_name, dst)
     enrich_skill(dst, root)
 
 

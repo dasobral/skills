@@ -1,13 +1,16 @@
 # Cursor adapter
 
-Cursor-specific extensions live here per plugin. The export tool merges:
+Cursor-specific extras live here per plugin. Portable skills are in `skills/`.
 
-- `core/skills/` → `plugins/cursor/<plugin>/skills/`
+The extras installer merges:
+
+- `skills/` → assembled plugin `skills/`
 - `adapters/cursor/<plugin>/agents|hooks|rules` → plugin root
 - `adapters/cursor/<plugin>/plugin.json` → overlay for `.cursor-plugin/plugin.json`
 
-Do **not** edit skills under `plugins/cursor/` — edit `core/skills/` and run:
+Do **not** edit skill bodies under assembled output. Edit `skills/` and run:
 
 ```bash
-./bin/skills-export sync cursor
+npx skills add dasobral/skills -a cursor
+./bin/skills-install cursor --plugins --user
 ```

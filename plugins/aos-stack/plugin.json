@@ -1,0 +1,18 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "aos-stack",
+  "version": "2.1.0",
+  "description": "Rust AOS services with LiteLLM-compatible APIs and local LLM inference.",
+  "license": "MIT",
+  "keywords": [
+    "rust",
+    "inference",
+    "vllm",
+    "litellm",
+    "aos",
+    "tokio"
+  ],
+  "author": {
+    "name": "Daniel Sobral Blanco"
+  }
+}

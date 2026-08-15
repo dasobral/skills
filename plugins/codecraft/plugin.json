@@ -1,0 +1,17 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "codecraft",
+  "version": "2.1.0",
+  "description": "End-to-end code quality: analyze conventions, write conformant code, review quality, and audit cognitive debt.",
+  "license": "MIT",
+  "keywords": [
+    "code-quality",
+    "conventions",
+    "review",
+    "cognitive-debt",
+    "refactoring"
+  ],
+  "author": {
+    "name": "Daniel Sobral Blanco"
+  }
+}

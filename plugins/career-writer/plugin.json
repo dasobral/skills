@@ -1,0 +1,17 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "career-writer",
+  "version": "2.1.0",
+  "description": "Professional career documents with audience-aware framing.",
+  "license": "MIT",
+  "keywords": [
+    "career",
+    "cv",
+    "cover-letter",
+    "resume",
+    "applications"
+  ],
+  "author": {
+    "name": "Daniel Sobral Blanco"
+  }
+}

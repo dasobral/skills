@@ -1,5 +1,24 @@
 # Changelog
 
+## 2.6.0 — 2026-08-14
+
+### Changed
+
+- **Approach B: authoring repo, not a skills installer.** Portable skills
+  live at well-known `skills/` for the Vercel CLI. Plugin families are
+  Agent Plugins 1.0.0 packages at `plugins/<family>/` (`plugin.json` +
+  skill symlinks, no copied bodies).
+- Install skills with `npx skills add dasobral/skills`. Flat
+  `skills-install` is removed; Claude extras install is removed.
+- `./bin/skills-install cursor|codex --plugins` still copies agents, hooks,
+  and rules.
+- Codex-only helper skills and the landing example are marked
+  `metadata.internal: true`.
+
+### Added
+
+- Agent Plugins schema validation for committed `plugin.json` files.
+
 ## 2.5.0 — 2026-07-21
 
 ### Changed

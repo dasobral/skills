@@ -1,0 +1,16 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "entropy-flight-recorder",
+  "version": "0.1.0",
+  "description": "Qualify entropy sources and determine when changes require requalification.",
+  "license": "MIT",
+  "keywords": [
+    "entropy",
+    "rng",
+    "qrng",
+    "qualification"
+  ],
+  "author": {
+    "name": "Daniel Sobral Blanco"
+  }
+}

@@ -1,6 +1,6 @@
 # skills-export
 
-Assemble `core/` + `adapters/` into `dist/` for Cursor, Claude Code, and Codex.
+Validate `skills/` + `core/manifest.yaml`, write Agent Plugins 1.0 packages under `plugins/<family>/`, and assemble Cursor/Codex extras into `dist/`.
 
 ```bash
 ./bin/skills-export validate
@@ -8,4 +8,4 @@ Assemble `core/` + `adapters/` into `dist/` for Cursor, Claude Code, and Codex.
 ./bin/skills-maintain
 ```
 
-Generated trees are gitignored. Install assembles on the fly.
+Portable skills are installed with `npx skills add dasobral/skills`. Native extras stay gitignored under `dist/`.

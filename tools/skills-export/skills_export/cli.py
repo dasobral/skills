@@ -8,22 +8,29 @@ from . import __version__
 from .assemble import PLATFORMS, export_all, export_flat_skills, export_platform
 from .ingest import ingest_landing, write_ingest_report
 from .manifest import load_manifest, platform_plugin_names, repo_root
+from .portable import export_portable_all, validate_portable_plugins
 from .validate import validate_core
 
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
         prog="skills-export",
-        description="Ingest landing/skills into core; assemble Cursor/Claude/Codex plugins into dist/.",
+        description=(
+            "Ingest landing skills, write Agent Plugins 1.0 packages, "
+            "and assemble Cursor/Codex extras into dist/."
+        ),
     )
     parser.add_argument("--version", action="version", version=f"%(prog)s {__version__}")
     parser.add_argument("--root", type=Path, default=None)
 
     sub = parser.add_subparsers(dest="command", required=True)
 
-    sub.add_parser("validate", help="Validate core skills + manifest")
+    sub.add_parser("validate", help="Validate skills, manifest, and Agent Plugins packages")
 
-    p_export = sub.add_parser("export", help="Assemble plugins into dist/")
+    p_export = sub.add_parser(
+        "export",
+        help="Write Agent Plugins packages and/or assemble extras into dist/",
+    )
     p_export.add_argument(
         "target",
         nargs="?",
@@ -61,7 +68,7 @@ def main(argv: list[str] | None = None) -> int:
     root = (args.root or repo_root()).resolve()
 
     if args.command == "validate":
-        errors = validate_core(root)
+        errors = [*validate_core(root), *validate_portable_plugins(root)]
         if errors:
             print("Validation failed:", file=sys.stderr)
             for err in errors:
@@ -70,7 +77,7 @@ def main(argv: list[str] | None = None) -> int:
         manifest = load_manifest(root)
         n_plugins = len(manifest["plugins"])
         n_skills = len({s for p in manifest["plugins"].values() for s in p["skills"]})
-        print(f"OK: {n_plugins} plugins, {n_skills} core skills")
+        print(f"OK: {n_plugins} plugins, {n_skills} portable skills")
         return 0
 
     if args.command == "list":
@@ -93,6 +100,8 @@ def main(argv: list[str] | None = None) -> int:
     if args.command in ("export", "sync"):
         target = getattr(args, "target", "all")
         plugins = getattr(args, "plugins", None)
+        portable = export_portable_all(root)
+        print(f"exported agent-plugins -> plugins/ ({len(portable)} packages)")
         targets = list(PLATFORMS) if target == "all" else [target]
         for platform in targets:
             out = args.output if getattr(args, "output", None) and target != "all" else root / "dist" / platform
@@ -101,7 +110,7 @@ def main(argv: list[str] | None = None) -> int:
             paths = export_platform(root, platform, out, plugins=plugins)
             if getattr(args, "flat", False) and platform in {"claude", "codex"}:
                 export_flat_skills(root, out, platform=platform, plugins=plugins)
-            print(f"exported {platform} -> {out} ({len(paths)} plugins)")
+            print(f"exported {platform} extras -> {out} ({len(paths)} plugins)")
         return 0
 
     if args.command == "ingest":
@@ -137,13 +146,21 @@ def main(argv: list[str] | None = None) -> int:
         if not getattr(args, "skip_export", False):
             if dry_run:
                 manifest = load_manifest(root)
+                print(f"would export agent-plugins ({len(manifest['plugins'])} packages)")
                 for platform in PLATFORMS:
                     n = len(platform_plugin_names(manifest, platform))
-                    print(f"would export {platform} ({n} plugins)")
+                    print(f"would export {platform} extras ({n} plugins)")
             else:
+                portable = export_portable_all(root)
+                print(f"exported agent-plugins -> plugins/ ({len(portable)} packages)")
+                portable_errors = validate_portable_plugins(root)
+                if portable_errors:
+                    for err in portable_errors:
+                        print(f"  - {err}", file=sys.stderr)
+                    return 1
                 export_all(root, plugins=getattr(args, "plugins", None))
                 for platform in PLATFORMS:
-                    print(f"exported {platform} -> dist/{platform}/")
+                    print(f"exported {platform} extras -> dist/{platform}/")
         print("maintain OK" + (" (dry-run)" if dry_run else ""))
         return 0
 

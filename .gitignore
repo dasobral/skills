@@ -1,5 +1,9 @@
 dist/
-plugins/
+# Native extras still assembled on demand under dist/.
+# Portable Agent Plugins live at plugins/<family>/ (committed).
+plugins/cursor/
+plugins/claude/
+plugins/codex/
 .cursor-plugin/
 .claude-plugin/
 .agents/plugins/

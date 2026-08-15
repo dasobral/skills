@@ -62,7 +62,7 @@ def _schema_path(skill: str, schema: str) -> Path | None:
     plugin_root = script.parents[2]
     candidates = [
         plugin_root / "skills" / skill / "references" / schema,
-        script.parents[5] / "core" / "skills" / skill / "references" / schema,
+        script.parents[5] / "skills" / skill / "references" / schema,
     ]
     return next((path for path in candidates if path.is_file()), None)
 
